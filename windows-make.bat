@@ -1,0 +1,2 @@
+make
+rmdir build /s
