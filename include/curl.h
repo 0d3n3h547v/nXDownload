@@ -21,7 +21,7 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 	char buf[256];
 	
 	if (url == NULL) {
-		chdir("sdmc:/switch/nXDownloader/");
+		chdir("sdmc:/switch/nXDownload/");
 		dest = fopen("url.txt", "r");
 	
 		if (dest == NULL) {
