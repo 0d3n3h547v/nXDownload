@@ -10,28 +10,18 @@
 #include "curl.h"
 
 /* defines & voids */
-#define EXIT_SUCCESS 0
+void fileDownload(char *url, char path[], char filename[], char extension[], int a);
 
-void fileDownload(char *url, char *path, char *filename, char *extension, int a);
-/*
-inside function fileDownload() int a options:
-
-- 1 = generates a filename of numbers from 0 up to 999998;
-- 2 = prints useful text for testing curl;
-- 3 = 1 & 2;
-- 0 = default;
-
-*/
-
-int main(int argc, char **argv)
+int main(void)
 {
     gfxInitDefault();
     consoleInit(NULL);
 	socketInitializeDefault(); // initialize sockets
 	
-    printf("Press + to continue");
+    printf("Press + to use default url\n");
+	printf("Press - to use custom url from file ''url.txt''\n");
+	int b = 0;
 	
-
     while(appletMainLoop())
     {
         hidScanInput();
@@ -39,13 +29,20 @@ int main(int argc, char **argv)
         u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
 
         if (kDown & KEY_PLUS) break; // break in order to return to hbmenu
-
+		if (kDown & KEY_MINUS)
+		{
+			int b = b + 1;
+			break;
+		}
+		
         gfxFlushBuffers();
         gfxSwapBuffers();
     }
 	
-	fileDownload("http://github.com/Dontwait00/curl-example-switch/releases/download/latest/curl-example.nro", "sdmc:/switch/", "test", ".nro", 0); // initialize download
-	printf("done! Press [+] to exit");
+	if (b == 1) fileDownload(NULL, "sdmc:/switch/", "test", "nro", 1); // initialize download from txt
+	if (b == 0) fileDownload("http://www.quora.com/How-can-I-convert-an-integer-to-a-char-array-in-C", "sdmc:/switch/", "test", "nro", 1); // initialize download
+
+	printf("\n\nDone! Press [+] to exit");
 	
 	while(appletMainLoop())
 	{
@@ -61,5 +58,5 @@ int main(int argc, char **argv)
 	
     gfxExit();
 	socketExit(); // terminate sockets
-    return EXIT_SUCCESS;
+    return (EXIT_SUCCESS);
 }

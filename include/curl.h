@@ -15,11 +15,40 @@ size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 	return written;
 }
 
- {
 void fileDownload(char *url, char path[], char filename[], char extension[], int a)
-	chdir(path); // change dir
+{
 	FILE *dest;
-	char buf[1024];
+	char buf[256];
+	
+	if (url == NULL) {
+		chdir("sdmc:/switch/nXDownloader/");
+		dest = fopen("url.txt", "r");
+	
+		if (dest == NULL) {
+			perror("\n# Error dest: ");
+			goto SKIP;
+		}
+	
+		// fix this shit!!!!!!!!!!! again!!! look on curlopt!!!
+		if (dest)
+		{
+			printf("\n# file opened...");
+			char tmp1[80], tmp2[80];
+			
+			while(1)
+			{
+				fgets(tmp1, 80, dest);
+				if (0 == EOF) break;
+				else sprintf(tmp2, "%s", tmp1);
+			}
+			
+			memcpy(url, tmp2, 80);
+			fclose(dest);
+		}
+	}
+	
+	SKIP:
+	chdir(path); // change dir
 	
 	if (a == 0) {
 		snprintf(buf, sizeof(buf), "%s.%s", filename, extension);
@@ -27,12 +56,12 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 	
 	if (a == 1) {
 		srand(time(NULL)); // sradicates the rand function
-		int random = rand() % 500; // generating the numbers
-		snprintf(buf, sizeof(buf), "010%d.%s", random, extension);
+		int random = rand() % 99999; // generating the numbers
+		snprintf(buf, sizeof(buf), "%d.%s", random, extension);
 	}
 	
 	if (buf == NULL) { 
-		perror("\n# Failed: ");
+		perror("\n# Failed");
 		goto EXIT;
 	}
 	
@@ -40,7 +69,7 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 	
 	if (dest == NULL) {
 		fclose(dest);
-		perror("\n# Failed: ");
+		perror("\n# Failed buf");
 		dest = fopen(buf, "wb");
 	} else { // the file exist
 		printf("\n# File %s exist already, overwrite? [A] Continue, [B] Exit", buf); // little warning
@@ -80,7 +109,7 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 		curl_easy_setopt(curl, CURLOPT_URL, url); // getting URL from char *url
 		printf("\n* DEBUG MODE\n");
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); // useful for debugging
-		// curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // following HTTP redirects
+		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // following HTTP redirects
 		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20L); // a max of setopt timeout for 20s
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // skipping cert. verification, if needed
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); // skipping hostname verification, if needed
@@ -95,8 +124,16 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 		
 	    appletEndBlockingHomeButton();	
 		
+		printf("\n\n# Exit by pressing [+] or [HOME]");
+		while (appletMainLoop()) {
+			hidScanInput();
+			u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+			if (kDown & KEY_PLUS) break;
+			gfxFlushBuffers();
+			gfxSwapBuffers();
+		}
+		
 	    curl_easy_cleanup(curl); // always cleanup
-
         fclose(dest); // closing FILE *stream
 	
 	}
@@ -104,16 +141,8 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
 	
-	printf("\n\n# Exit by pressing [+] or [HOME]");
-	while(true) {
-		hidScanInput();
-		u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-		if (kDown & KEY_PLUS) break;
-	}
-	
 	EXIT:
 	exit(0);
-
 }
 
 #endif
