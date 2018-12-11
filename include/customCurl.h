@@ -77,10 +77,7 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 			if (kDown & KEY_A) {
 				break;
 			}
-			if (kDown & KEY_B) {
-				fclose(dest); // as you decided to return, we need to close FILE *stream
-				goto EXIT;
-			}
+			if (kDown & KEY_PLUS) goto EXIT;
 			
 			gfxFlushBuffers();
             gfxSwapBuffers();
@@ -122,11 +119,10 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 		fclose(dest); // closing FILE *stream
 		
 		printf("\n\n# Exit by pressing [+] or [HOME]");
-		printf("\n\n# (by pressing + you will crash)");
 		while (appletMainLoop()) {
 			hidScanInput();
 			u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-			if (kDown & KEY_PLUS) break;
+			if (kDown & KEY_PLUS) goto EXIT;
 			gfxFlushBuffers();
 			gfxSwapBuffers();
 		}
@@ -137,7 +133,8 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 	}
 	
 	EXIT:
-	exit(0);
+		gfxExit();
+		socketExit();
 }
 
 #endif

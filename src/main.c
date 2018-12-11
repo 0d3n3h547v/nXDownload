@@ -40,23 +40,9 @@ int main(void)
     }
 	
 	if (b == 1) fileDownload(NULL, "sdmc:/switch/", "test", "zip.003", 1); // initialize download from txt
-	if (b == 0) fileDownload("http://www.quora.com/How-can-I-convert-an-integer-to-a-char-array-in-C", "sdmc:/switch/", "test", "nro", 1); // initialize download
+	if (b == 0) fileDownload("http://projects00.000webhostapp.com/helloSDL2.nro", "sdmc:/switch/", "test", "nro", 1); // initialize download
 
-	printf("\n\nDone! Press [+] to exit");
-	
-	while(appletMainLoop())
-	{
-        hidScanInput();
-
-        u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-
-        if (kDown & KEY_PLUS) break; // break in order to return to hbmenu
-
-        gfxFlushBuffers();
-        gfxSwapBuffers();
-    }
-	
-    gfxExit();
-	socketExit(); // terminate sockets
-    return (EXIT_SUCCESS);
+	EXIT:
+		gfxExit();
+		socketExit();
 }
