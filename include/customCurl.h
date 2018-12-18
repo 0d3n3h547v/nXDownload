@@ -39,7 +39,7 @@ void nXDownloadUpdate()
 	
 	chdir(path);
 	FILE *dest;
-	dest = fopen("nXDownload_newer.nro", "wb");
+	dest = fopen("nXDownload_newer.nro", "w");
 	
 	if (curl)
 	{
@@ -69,7 +69,7 @@ void nXDownloadUpdate()
 	remove("sdmc:/switch/nXDownload/nXDownload.nro"); 
 	rename("sdmc:/switch/nXDownload/nXDownload_newer.nro", "sdmc:/switch/nXDownload/nXDownload.nro"); // Wow. this is like reinxtool source! xD
 	curlExit();
-	consoleExit(NULL);
+	return;
 }
 
 void fileDownload(char *url, char path[], char filename[], char extension[], int a)
@@ -92,9 +92,8 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 			char tmp1[150];
 			
 			while(!feof(dest)) fgets(tmp1, 150, dest);
-			printf("\n# Done!");
 			url = tmp1;
-			printf("\n# Done twice!");
+			printf("\n# Done!");
 			fclose(dest);
 		}
 	}
@@ -171,20 +170,11 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 		
 	    appletEndBlockingHomeButton();
 		fclose(dest); // closing FILE *stream
-		
-		printf("\n\n# Exit by pressing [+] or [HOME]");
-		printf("\n\n# (by pressing + you will crash)");
-		while (appletMainLoop()) {
-			hidScanInput();
-			u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-			if (kDown & KEY_PLUS) break;
-			gfxFlushBuffers();
-			gfxSwapBuffers();
-		}
 	
 	}
 	
 	curlExit();
+	return;
 }
 
 #endif
