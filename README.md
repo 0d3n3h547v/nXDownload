@@ -9,6 +9,7 @@ This project uses my custom implementation of libcurl. You can use my own "custo
 ## Features & ideas
 ### As this tool is pretty new, and lot of my freetime goes to debugging, probably will take much time before finishing it.
 - add possibility to read a custom URL from sdmc:/switch/nXDownload/url.txt = Done!
+- add pssibility to read multiple URL from "url.txt"
 - add support for plain URL's (meaning writing URL directly to the Switch!)
 - add support for saving plain URL's (meaning written URL will be saved in a different file)
 - add support for SDL2 projects!
