@@ -1,5 +1,11 @@
 # nXDownload
 Download any file directly inside sdmc:/ on the Nintendo Switch
+Coming big features, like downloading NSP & XCI games from a simple file containing multiple download links. And, if you are downloading a RAR/ZIP compression, it will automatically unrar/unzip it! (A new way to offer piracy to you're Switch!)
+
+## This tool is pretty basic:
+#### 1 - Create a file .txt
+#### 2 - Add few lines with links
+#### 3 - Power on you're Switch, and start download you're file!
 
 ## NOTE:
 This project uses my custom implementation of libcurl. You can use my own "customCurl.h" header, without problems! Be sure at least to credit!
