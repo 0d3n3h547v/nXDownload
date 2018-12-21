@@ -1,7 +1,7 @@
 # nXDownload
 Download any file directly inside sdmc:/ on the Nintendo Switch
 
-Coming big features, like downloading NSP & XCI games from a simple file containing multiple download links. And, if you are downloading a RAR/ZIP compression, it will automatically unrar/unzip it! (A new way to offer piracy to you're Switch!)
+Coming big features, like downloading NSP & XCI games from a simple file containing multiple download links. And, if you're downloading a RAR/ZIP compression, it will automatically unrar/unzip it! (A new way to offer piracy to your Switch!)
 
 ## This tool is pretty basic:
 #### 1 - Create a file .txt
