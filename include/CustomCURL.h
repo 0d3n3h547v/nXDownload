@@ -104,9 +104,19 @@ void nXDownloadUpdate()
 
 void fileDownload(char *url, char path[], char filename[], char extension[], int a)
 {
+	consoleClear();
 	FILE *dest;
 	char buf[256];
 	struct myprogress prog;
+	
+	if (a == 2) {
+		char tmp1[150];
+		dest = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "r");
+		while(!feof(dest)) fgets(tmp1, 150, dest);
+		url = tmp1;
+		printf("\n# done reading plain url");
+		fclose(dest);
+	}
 	
 	if (url == NULL) {
 		chdir("sdmc:/switch/nXDownload/");
@@ -115,7 +125,7 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 		if (dest == NULL) {
 			perror("\n# Error dest: ");
 			goto SKIP;
-		}
+		} // continue
 
 		if (dest)
 		{
@@ -132,7 +142,7 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 	SKIP:
 	chdir(path); // change dir
 	
-	if (a == 0) {
+	if (a == 0 || a == 2) {
 		snprintf(buf, sizeof(buf), "%s.%s", filename, extension);
 	}
 	
