@@ -37,6 +37,10 @@ SOURCES		:=	src
 DATA		:=	data
 INCLUDES	:=	include
 EXEFS_SRC	:=	exefs_src
+APP_AUTHOR  :=  Dontwait00
+APP_TITLE   :=  nXDownload
+ICON        :=  Icon.jpg
+APP_VERSION :=  v0.8b
 #ROMFS	:=	romfs
 
 #---------------------------------------------------------------------------------

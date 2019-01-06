@@ -13,12 +13,12 @@
 void curlInit();
 void curlExit();
 void nXDownloadUpdate();
-void fileDownload(char *url, char path[], char filename[], char extension[], int a);
+void fileDownload(char *url, char path[], int a);
 
 int loop = 0;
 
 void WriteUrl() {
-	printf("\x1b[3;33HnXDownload v0.7b");
+	printf("\x1b[3;33HnXDownload v0.8b");
 	
 	printf("\x1b[5;32HWrite down the url");
 	printf("\x1b[7;1H(is better if you use some sort of shrinker link, be sure at least that doesnt redirect you to some ads or HTTPS because is not supported from the switch.)");
@@ -64,8 +64,7 @@ void WriteUrl() {
 		
 		if (kDown & KEY_PLUS) break;
 		
-		gfxFlushBuffers();
-        gfxSwapBuffers();
+		consoleUpdate(NULL);
 	}
 	
 	fclose(fp);
@@ -79,7 +78,7 @@ void MainMenu() {
 	int b = 0;
 	int select = 5;
 	
-	printf("\x1b[3;33HnXDownload v0.7b");
+	printf("\x1b[3;33HnXDownload v0.8b");
 	
 	printf("\x1b[5;3HUpdate latest nXDownload");
 	printf("\x1b[6;3HDownload from input.txt");
@@ -128,8 +127,7 @@ void MainMenu() {
 			}
 		}
 			
-        gfxFlushBuffers();
-        gfxSwapBuffers();
+        consoleUpdate(NULL);
     }
 	
 	consoleClear();
@@ -138,9 +136,9 @@ void MainMenu() {
 	
 	if (b == 2) {
 		WriteUrl();
-		fileDownload(NULL, "sdmc:/switch/nXDownload/", "test", "txt", 2); // initialize download from tmp txt
+		fileDownload(NULL, "sdmc:/switch/nXDownload/", 2); // initialize download from tmp txt
 	}
-	if (b == 1) fileDownload(NULL, "sdmc:/switch/", "test", "nro", 1); // initialize download from txt
+	if (b == 1) fileDownload(NULL, "sdmc:/switch/", 1); // initialize download from txt
 	if (b == 0) nXDownloadUpdate(); // initialize download
 	
 	printf("\n\nFinish!\n\npress [+] to exit");
@@ -156,15 +154,13 @@ void MainMenu() {
 			break;
 		}
 		
-		gfxFlushBuffers();
-        gfxSwapBuffers();
+		consoleUpdate(NULL);
 	}
 	return;
 }
 
 int main(void)
 {
-    gfxInitDefault();
     consoleInit(NULL);
 	curlInit(); // inititialize sequel
 	
@@ -173,7 +169,6 @@ int main(void)
 	
 	if (loop == 1) goto START;
 	
-    gfxExit();
 	curlExit(); // terminate sockets
 	consoleExit(NULL); // terminate app
     return (EXIT_SUCCESS);

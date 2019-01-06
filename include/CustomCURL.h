@@ -48,7 +48,6 @@ size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 	return written;
 }
 
-
 void curlInit()
 {
 	socketInitializeDefault();
@@ -82,7 +81,6 @@ void nXDownloadUpdate()
 		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L); // a max of setopt timeout for 20s
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // skipping cert. verification, if needed
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); // skipping hostname verification, if needed
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback); // writes data into pointer
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest); // writes pointer into FILE *destination
         res = curl_easy_perform(curl); // perform tasks curl_easy_setopt asked before
 		
@@ -102,10 +100,11 @@ void nXDownloadUpdate()
 	return;
 }
 
-void fileDownload(char *url, char path[], char filename[], char extension[], int a)
+void fileDownload(char *url, char path[], int a)
 {
 	consoleClear();
 	FILE *dest;
+	char tmp1[150];
 	char buf[256];
 	struct myprogress prog;
 	
@@ -113,7 +112,7 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 		char tmp1[150];
 		dest = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "r");
 		while(!feof(dest)) fgets(tmp1, 150, dest);
-		url = tmp1;
+		url = strdup(tmp1);
 		printf("\n# done reading plain url");
 		fclose(dest);
 	}
@@ -130,10 +129,9 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 		if (dest)
 		{
 			printf("\n# file opened...");
-			char tmp1[150];
 			
 			while(!feof(dest)) fgets(tmp1, 150, dest);
-			url = tmp1;
+			url = strdup(tmp1);
 			printf("\n# Done!");
 			fclose(dest);
 		}
@@ -142,19 +140,22 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 	SKIP:
 	chdir(path); // change dir
 	
-	if (a == 0 || a == 2) {
-		snprintf(buf, sizeof(buf), "%s.%s", filename, extension);
-	}
+	if (a == 0 || a == 1 || a == 2) {
+		
+		char *token;
+		token = strtok(tmp1, "/");
 	
-	if (a == 1) {
-		srand(time(NULL)); // sradicates the rand function
-		int random = rand() % 99999; // generating the numbers
-		snprintf(buf, sizeof(buf), "%d.%s", random, extension);
+		while(token != NULL) {
+			token = strtok(NULL, "/");
+			if (token != NULL) strcpy(buf, token);
+		}
+		
 	}
 	
 	if (buf == NULL) { 
 		perror("\n# Failed");
 		curlExit();
+		return;
 	}
 	
 	dest = fopen(buf, "r");
@@ -178,8 +179,7 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 				curlExit();
 			}
 			
-			gfxFlushBuffers();
-            gfxSwapBuffers();
+			consoleUpdate(NULL);
 		}
 		
 		fclose(dest);
@@ -202,11 +202,11 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 		curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // skipping cert. verification, if needed
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); // skipping hostname verification, if needed
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback); // writes data into pointer
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest); // writes pointer into FILE *destination
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+		consoleUpdate(NULL);
         res = curl_easy_perform(curl); // perform tasks curl_easy_setopt asked before
 		
 		if (res != CURLE_OK) {
@@ -214,6 +214,7 @@ void fileDownload(char *url, char path[], char filename[], char extension[], int
 			fclose(dest);
 		}
 		
+		free(url);
 	    appletEndBlockingHomeButton();
 		fclose(dest); // closing FILE *stream
 	
