@@ -35,6 +35,7 @@ static int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
   }
   
   printf("DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " of %" CURL_FORMAT_CURL_OFF_T "\r", dlnow, dltotal);
+  consoleUpdate(NULL);
   return 0;
 }
 
@@ -165,7 +166,7 @@ void fileDownload(char *url, char path[], int a)
 		perror("\n# Failed buf (not important)");
 		dest = fopen(buf, "wb");
 	} else { // the file exist
-		printf("\n# File %s exist already, overwrite? [A] Continue, [B] Exit", buf); // little warning
+		printf("\n# File %s exist already, overwrite?\n\n[A] Continue\n[B] Exit", buf); // little warning
 		
 		while (appletMainLoop()) {
 			hidScanInput();
@@ -177,6 +178,7 @@ void fileDownload(char *url, char path[], int a)
 			if (kDown & KEY_B) {
 				fclose(dest); // as you decided to return, we need to close FILE *stream
 				curlExit();
+				return;
 			}
 			
 			consoleUpdate(NULL);
@@ -206,13 +208,12 @@ void fileDownload(char *url, char path[], int a)
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-		consoleUpdate(NULL);
         res = curl_easy_perform(curl); // perform tasks curl_easy_setopt asked before
 		
 		if (res != CURLE_OK) {
-			printf("\n# Failed: %s", curl_easy_strerror(res));
-			fclose(dest);
-		}
+				printf("\n# Failed: %s", curl_easy_strerror(res));
+				fclose(dest);
+		    }
 		
 		free(url);
 	    appletEndBlockingHomeButton();
