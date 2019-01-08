@@ -35,6 +35,7 @@ static int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
   }
   
   printf("DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " of %" CURL_FORMAT_CURL_OFF_T "\r", dlnow, dltotal);
+  
   consoleUpdate(NULL);
   return 0;
 }
@@ -88,7 +89,6 @@ void nXDownloadUpdate()
 		if (res != CURLE_OK) {
 			printf("\n# Failed: %s", curl_easy_strerror(res));
 			fclose(dest);
-			curlExit();
 		}
 		
 	    appletEndBlockingHomeButton();
@@ -97,7 +97,6 @@ void nXDownloadUpdate()
 	
 	remove("sdmc:/switch/nXDownload/nXDownload.nro"); 
 	rename("sdmc:/switch/nXDownload/nXDownload_newer.nro", "sdmc:/switch/nXDownload/nXDownload.nro"); // Wow. this is like reinxtool source! xD
-	curlExit();
 	return;
 }
 
@@ -105,43 +104,110 @@ void fileDownload(char *url, char path[], int a)
 {
 	consoleClear();
 	FILE *dest;
-	char tmp1[150];
+	char tmp1[256];
 	char buf[256];
 	struct myprogress prog;
 	
-	if (a == 2) {
-		char tmp1[150];
+	if (a == 2) { // useful to pass data (url) between functions; but you need to write the tmpfile.txt with inside the url, before executing this function
+	
 		dest = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "r");
-		while(!feof(dest)) fgets(tmp1, 150, dest);
+		while(!feof(dest)) fgets(tmp1, sizeof(tmp1), dest);
 		url = strdup(tmp1);
 		printf("\n# done reading plain url");
 		fclose(dest);
+		
+		if (url == NULL) {
+			perror("\nError passing argument");
+			return; // terminate function
+		}
+		
+		goto SKIP;
 	}
 	
-	if (url == NULL) {
-		chdir("sdmc:/switch/nXDownload/");
-		dest = fopen("input.txt", "r");
+	// if int a equivale with 2, the code below is skipped
 	
-		if (dest == NULL) {
-			perror("\n# Error dest: ");
-			goto SKIP;
-		} // continue
-
-		if (dest)
-		{
-			printf("\n# file opened...");
+	chdir("sdmc:/switch/nXDownload/"); // changing path to find the files needed for nXD
+	
+	consoleClear();
+	char i[512][512];
+	char f[512][512];
+	int n;
+	
+	consoleUpdate(NULL);
+	
+	if ((dest = fopen("input.txt","r")) != NULL) {
+		for (n = 0; n < 512; n++) {
 			
-			while(!feof(dest)) fgets(tmp1, 150, dest);
-			url = strdup(tmp1);
-			printf("\n# Done!");
-			fclose(dest);
+			if (fscanf(dest, "%s = %s", i[n], f[n]) != 2) break;
+			
+			printf("\x1b[1;1H%d links counter", n);
+			
+			if (n == 511) printf("\n# Too many links that i can't handle! My MAX is 511 links!");
+			
+			consoleUpdate(NULL);
 		}
+		
+		int counter = n - 1;
+		fclose(dest);
+		
+		if (i[n] == NULL || f[n] == NULL) { // error: no arguments as the file is open
+			printf("\n# There was an err while reading arguments:\nCheck that 'input.txt' at least is made like this:\n===============================\n<title> = <download/link/url>");
+			return;
+		}
+		
+		printf("\x1b[5;1HStart = %s%s%s\nURL = %s%s%s", CONSOLE_RED, i[n], CONSOLE_RESET, CONSOLE_GREEN, f[n], CONSOLE_RESET);
+		
+		while(appletMainLoop()) {
+			hidScanInput();
+			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+			
+			printf("\x1b[1;1H%d links counter", n);
+			printf("\x1b[5;1HStart = %s%s%s\nURL = %s%s%s", CONSOLE_RED, i[n], CONSOLE_RESET, CONSOLE_GREEN, f[n], CONSOLE_RESET);
+			printf("\x1b[9;1HPress D-PAD [->] to look forward\n");
+			printf("Press D-PAD [<-] to look backward\n");
+			printf("\nPress [B] to go back\n");
+			printf("Press [A] to start download\n");
+			
+			if (kDown & KEY_DLEFT) {
+				consoleClear();
+				n--;
+				if (n < 0) n = counter;
+			}
+			
+			if (kDown & KEY_DRIGHT) {
+				consoleClear();
+				n++;
+				if (n > counter) n = 0;
+			}
+			
+			if (kDown & KEY_B) {
+				curlExit();
+				return; // terminate function
+			}
+			
+			if (kDown & KEY_A) {
+				sprintf(tmp1, "%s", f[n]);
+				break; 
+			}
+			
+			consoleUpdate(NULL);
+		}
+			
+		printf("\n# Done!");
+		consoleUpdate(NULL);
+		url = strdup(tmp1);
+		fclose(dest);
+		
+	} else { // error opening dest
+		perror("Error dest");
+		consoleUpdate(NULL);
+		return;
 	}
 	
 	SKIP:
 	chdir(path); // change dir
 	
-	if (a == 0 || a == 1 || a == 2) {
+	if (a == 0 || a == 1) { // this parses the url to mantain the last token, which (usually) contains the filename
 		
 		char *token;
 		token = strtok(tmp1, "/");
@@ -156,7 +222,7 @@ void fileDownload(char *url, char path[], int a)
 	if (buf == NULL) { 
 		perror("\n# Failed");
 		curlExit();
-		return;
+		return; // terminate function
 	}
 	
 	dest = fopen(buf, "r");
@@ -166,7 +232,7 @@ void fileDownload(char *url, char path[], int a)
 		perror("\n# Failed buf (not important)");
 		dest = fopen(buf, "wb");
 	} else { // the file exist
-		printf("\n# File %s exist already, overwrite?\n\n[A] Continue\n[B] Exit", buf); // little warning
+		printf("\n# File %s exist already, overwrite?\n\nPress [A] to continue\nPress [B] to exit", buf); // little warning
 		
 		while (appletMainLoop()) {
 			hidScanInput();
@@ -178,7 +244,7 @@ void fileDownload(char *url, char path[], int a)
 			if (kDown & KEY_B) {
 				fclose(dest); // as you decided to return, we need to close FILE *stream
 				curlExit();
-				return;
+				return; // terminate function
 			}
 			
 			consoleUpdate(NULL);
@@ -216,13 +282,12 @@ void fileDownload(char *url, char path[], int a)
 		    }
 		
 		free(url);
-	    appletEndBlockingHomeButton();
+		appletEndBlockingHomeButton();
 		fclose(dest); // closing FILE *stream
 	
 	}
 	
-	curlExit();
-	return;
+	return; // terminate function; Congrats, you did it till here!
 }
 
 #endif
