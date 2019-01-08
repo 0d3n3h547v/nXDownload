@@ -21,10 +21,13 @@ This homebrew was intended to download specially NSPs & XCI without problems. Bu
 ![done](https://i.imgur.com/yipKvHb.jpg)
 
 ## This tool is pretty basic:
-#### 1 - Create a file .txt (from any device)
-#### 2 - Add few lines with links with formatted arguments
+### 1 - Create a file .txt (from any device)
+### 2 - Add few lines with links with formatted arguments
 ####     - i.e.`<title-of-game/desciption> = <download/link/url_without_HTTPS>`
-#### 3 - Power on your Switch, and select what file to download!
+####     - Files are downloaded by default to `sdmc:/switch/nXDownload/Downloads/`
+####     - Remember that this tool requires *Direct Download Links* till i find someway to parse the download link from the webpage!
+####     - File-sharing websites compatible with my tool are Mediafire, Uptobox, and any website that uses HTTP protocol!
+### 3 - Power on your Switch, and select what file to download!
 
 ## NOTE:
 - This project is based on *libcurl*.
