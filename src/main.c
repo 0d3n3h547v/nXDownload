@@ -18,7 +18,7 @@ void fileDownload(char *url, char path[], int a);
 int loop = 0;
 
 void WriteUrl() {
-	printf("\x1b[3;33HnXDownload v0.8b");
+	printf("\x1b[3;25HnXDownload v0.9b %s%s%s", CONSOLE_GREEN, "(experimental)", CONSOLE_RESET);
 	
 	printf("\x1b[5;32HWrite down the url");
 	printf("\x1b[7;1H(is better if you use some sort of shrinker link, be sure at least that doesnt redirect you to some ads or HTTPS because is not supported from the switch.)");
@@ -78,7 +78,7 @@ void MainMenu() {
 	int b = 0;
 	int select = 5;
 	
-	printf("\x1b[3;33HnXDownload v0.8b");
+	printf("\x1b[3;25HnXDownload v0.9b %s%s%s", CONSOLE_GREEN, "(experimental)", CONSOLE_RESET);
 	
 	printf("\x1b[5;3HUpdate latest nXDownload");
 	printf("\x1b[6;3HDownload from input.txt");
@@ -113,14 +113,14 @@ void MainMenu() {
 		}
 		
 		if (kDown & KEY_A) {
-			if (select == 9) return;
+			if (select == 9) return; // exit
 			
-			if (select == 5) break;
-			if (select == 6) {
+			if (select == 5) break; // update
+			if (select == 6) { // download from input.txt
 				b = b + 1;
 				break;
 			}
-			if (select == 7) {
+			if (select == 7) { // write temporaly link
 				consoleClear();
 				b = b + 2;
 				break;
@@ -136,9 +136,9 @@ void MainMenu() {
 	
 	if (b == 2) {
 		WriteUrl();
-		fileDownload(NULL, "sdmc:/switch/nXDownload/", 2); // initialize download from tmp txt
+		fileDownload(NULL, "sdmc:/switch/nXDownload/", 2); // initialize download from tmpfile txt
 	}
-	if (b == 1) fileDownload(NULL, "sdmc:/switch/", 1); // initialize download from txt
+	if (b == 1) fileDownload(NULL, "sdmc:/switch/", 1); // initialize download from input txt
 	if (b == 0) nXDownloadUpdate(); // initialize download
 	
 	printf("\n\nFinish!\n\npress [+] to exit");
