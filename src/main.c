@@ -18,57 +18,98 @@ void fileDownload(char *url, char path[], int a);
 int loop = 0;
 
 void WriteUrl() {
+	
 	printf("\x1b[3;25HnXDownload v0.9b %s%s%s", CONSOLE_GREEN, "(experimental)", CONSOLE_RESET);
 	
-	printf("\x1b[5;32HWrite down the url");
-	printf("\x1b[7;1H(is better if you use some sort of shrinker link, be sure at least that doesnt redirect you to some ads or HTTPS because is not supported from the switch.)");
-	
-	printf("\x1b[10;1Hhttp://a");
-	printf("\x1b[11;8H^");
-	
-	printf("\x1b[20;3HPress [+] to continue; Press [-] to go back");
-	
 	FILE *fp;
-	fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "wb");
+	fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "w");
 	
-	int write = 0;
-	int writeY = 8;
+	/* get heap memory */
 	
-	char str[] = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','y','x','z','/','.','+','-','_','!','?','=','&','%','#','*','1','2','3','4','5','6','7','8','9','0'};
+	void *haddr;
+	Result rc;
 	
-	fprintf(fp, "http://");
+	size_t size = 0;
+	size_t mem_available = 0, mem_used = 0;
 	
-	while(appletMainLoop()) {
-		hidScanInput();
-		u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-		printf("\x1b[10;%dH%c", writeY, str[write]);
+	svcGetInfo(&mem_available, 6, CUR_PROCESS_HANDLE, 0);
+	svcGetInfo(&mem_used, 7, CUR_PROCESS_HANDLE, 0);
+	
+	if (mem_available > mem_used+0x200000) size = (mem_available - mem_used - 0x200000) & ~0x1FFFFF;
+	
+	if (size == 0) size = 0x2000000*16;
+	// if(R_FAILED(svcSetHeapSize(&haddr, size))) printf("\x1b[1;1H%s%s%lx%s", CONSOLE_RED, "Error while allocating heap to: 0x", size, CONSOLE_RESET);
+	
+	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) return;
+	
+	SwkbdConfig skp; // Software Keyboard Pointer
+	
+	rc = swkbdCreate(&skp, 0);
+	char tmpoutstr[256] = {0};
+	
+	if (R_SUCCEEDED(rc)) {
 		
-		if (write == 48) write = 0;
-		if (write == -1) write = 47;
+		swkbdConfigMakePresetDefault(&skp);
+		swkbdConfigSetGuideText(&skp, "insert a http:// direct download link");
+	
+		rc = swkbdShow(&skp, tmpoutstr, sizeof(tmpoutstr));
+		fprintf(fp, "%s", tmpoutstr);
+		swkbdClose(&skp);
 		
-		if (kDown & KEY_DUP) write++;
-		
-		if (kDown & KEY_DDOWN) write--;
-			
-		if (kDown & KEY_A) {
-			fprintf(fp, "%c", str[write]);
-			printf("\x1b[11;%dH ", writeY);
-			writeY = writeY + 1;
-			printf("\x1b[11;%dH^", writeY);
-		}
-			
-		if (kDown & KEY_MINUS) {
-			loop = loop + 1;
-			break;
-		}
-		
-		if (kDown & KEY_PLUS) break;
-		
-		consoleUpdate(NULL);
 	}
+	
+	char *token; char buf[256];
+	token = strtok(tmpoutstr, "/");
+	
+	while(token != NULL) {
+		token = strtok(NULL, "/");
+		if (token != NULL) strcpy(buf, token);
+	}
+	
+	if(R_FAILED(svcSetHeapSize(&haddr, size))) printf("\x1b[1;3H%s%s%lx%s", CONSOLE_RED, "Error while allocating heap to: 0x", size, CONSOLE_RESET);
+	
+	int n;
+	for (n = 0; buf[n] != '\0'; n++)  {
+		if (buf[n] == '.') goto SKIP;
+	}
+	
+	if (buf[n] == '\0') {
+		
+		printf("\x1b[6;3H%s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?", CONSOLE_RESET);
+		printf("\x1b[8;3HPress [A] to continue");
+		printf("\x1b[9;3HPress [B] to skip");
+		
+		while(appletMainLoop()) {
+			hidScanInput();
+			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+		
+			if (kDown & KEY_A) {
+				rc = swkbdCreate(&skp, 0);
+				
+				if (R_SUCCEEDED(rc)) {
+					
+					char tmp[16] = {0};
+					swkbdConfigMakePresetDefault(&skp);
+					swkbdConfigSetGuideText(&skp, "insert extension i.e. 'nsp' or 'rar' without '.'");
+	
+					rc = swkbdShow(&skp, tmp, sizeof(tmp));
+					fprintf(fp, ".%s", tmp);
+					swkbdClose(&skp);
+					break;
+				}
+			}
+			if (kDown & KEY_B) break;
+				
+		
+			consoleUpdate(NULL);
+		}
+	}
+	
+	SKIP:
 	
 	fclose(fp);
 	return;
+	
 }
 
 void MainMenu() {
@@ -80,7 +121,7 @@ void MainMenu() {
 	
 	printf("\x1b[3;25HnXDownload v0.9b %s%s%s", CONSOLE_GREEN, "(experimental)", CONSOLE_RESET);
 	
-	printf("\x1b[5;3HUpdate latest nXDownload");
+	printf("\x1b[5;3HUpdate latest beta nXDownload");
 	printf("\x1b[6;3HDownload from input.txt");
 	printf("\x1b[7;3HWrite temporaly URL");
 	printf("\x1b[9;3HExit");
@@ -138,10 +179,12 @@ void MainMenu() {
 		WriteUrl();
 		fileDownload(NULL, "sdmc:/switch/nXDownload/", 2); // initialize download from tmpfile txt
 	}
-	if (b == 1) fileDownload(NULL, "sdmc:/switch/", 1); // initialize download from input txt
+	
+	if (b == 1) fileDownload(NULL, "sdmc:/switch/nXDownload/", 1); // initialize download from input txt
 	if (b == 0) nXDownloadUpdate(); // initialize download
 	
-	printf("\n\nFinish!\n\npress [+] to exit");
+	printf("\n\n%s%s%s", CONSOLE_GREEN, "Finish!\n", CONSOLE_RESET);
+	printf("\npress [+] to exit");
 	printf("\npress [-] to continue");
 	
 	while(appletMainLoop()) {
