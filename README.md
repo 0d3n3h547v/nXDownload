@@ -17,7 +17,7 @@ This homebrew was intended to download specially NSPs & XCI without problems. Bu
 
 ## Some more images!
 ![downloading](https://i.imgur.com/sugFPW6.jpg)
-![installing](https://i.imgur.com/ld0LMac.jpg)
+![installing](https://raw.githubusercontent.com/XorTroll/Goldleaf/master/Screenshots/Goldleaf.install3.jpg)
 ![done](https://i.imgur.com/yipKvHb.jpg)
 
 ## This tool is pretty basic:
