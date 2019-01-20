@@ -37,7 +37,7 @@ This homebrew was intended to download specially NSPs & XCI without problems. Bu
 - This project is based on *libcurl*.
 - This project changes the **heap size**, to get the software Keyboard feature (can have memory issues). In future, this could change.
 - It doesn't support **HTTPS** protocol (meaning that once **[mbedtls library](https://tls.mbed.org/)** is officially ported to `libnx` we then can use **SSL** encyption)
-- This project is under a license.
+- This project is under GPL-3 License.
 - use command line `pacman -S switch-curl` inside Msys2 to be able to compile this homebrew.
 - **I do not take any responsibility if it is used inappropriately or is damaging your console.**
 
