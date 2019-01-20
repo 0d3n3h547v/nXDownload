@@ -30,7 +30,7 @@ static int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
  
   if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
     myp->lastruntime = curtime;
-	printf("TOTAL TIME: %f \r", curtime);
+	printf("TOTAL TIME: %f \n", curtime);
   }
   
   printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes\r", dlnow, dltotal);
