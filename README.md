@@ -1,4 +1,4 @@
-# nXDownload (working title)
+# nXDownload
 Download any file directly inside `sdmc:/` on your Nintendo Switch
 ![First impact](https://i.imgur.com/M0Q7Jk9.jpg)
 
@@ -37,7 +37,7 @@ This homebrew was intended to download specially NSPs & XCI without problems. Bu
 - This project is based on *libcurl*.
 - This project changes the **heap size**, to get the software Keyboard feature (can have memory issues). In future, this could change.
 - It doesn't support **HTTPS** protocol (meaning that once **[mbedtls library](https://tls.mbed.org/)** is officially ported to `libnx` we then can use **SSL** encyption)
-- This project is under MIT License.
+- This project is under a license.
 - use command line `pacman -S switch-curl` inside Msys2 to be able to compile this homebrew.
 - **I do not take any responsibility if it is used inappropriately or is damaging your console.**
 
