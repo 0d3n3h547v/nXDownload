@@ -49,6 +49,7 @@ void curlExit(void);
 void nXDownloadUpdate(void);
 void FILE_TRANSFER_FTP(char *url, char path[]);
 void FILE_TRANSFER_HTTP(char *url, char path[], int a);
+bool FILE_TRANSFER_HTTP_TEMPORALY(void);
 size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
 #endif

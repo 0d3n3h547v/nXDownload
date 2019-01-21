@@ -4,6 +4,7 @@
 #include <stdlib.h> // used for alloc/malloc
 #include <string.h> // used for mini tools
 #include <unistd.h> // used for chdir()
+#include <stdbool.h>// bool = 1 == true; 0 == false;
 #include <curl/curl.h>
 #include "includes/download.h"
 
@@ -46,7 +47,102 @@ void nXDownloadUpdate(void) {
 	return;
 }
 
+bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
+	/* get heap memory */
+	consoleClear();
+	void *haddr;
+	Result rc;
+	
+	size_t size = 0;
+	size_t mem_available = 0, mem_used = 0;
+	
+	svcGetInfo(&mem_available, 6, CUR_PROCESS_HANDLE, 0);
+	svcGetInfo(&mem_used, 7, CUR_PROCESS_HANDLE, 0);
+	
+	if (mem_available > mem_used+0x200000) size = (mem_available - mem_used - 0x200000) & ~0x1FFFFF;
+	
+	if (size == 0) size = 0x2000000*16;
+	// if(R_FAILED(svcSetHeapSize(&haddr, size))) printf("\x1b[1;1H%s%s%lx%s", CONSOLE_RED, "Error while allocating heap to: 0x", size, CONSOLE_RESET);
+	
+	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) return false;
+	
+	FILE *fp;
+	fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "w");
+	
+	SwkbdConfig skp; // Software Keyboard Pointer
+	
+	rc = swkbdCreate(&skp, 0);
+	char tmpoutstr[256] = {0};
+	
+	if (R_SUCCEEDED(rc)) {
+		
+		swkbdConfigMakePresetDefault(&skp);
+		swkbdConfigSetGuideText(&skp, "insert a http:// direct download link");
+	
+		rc = swkbdShow(&skp, tmpoutstr, sizeof(tmpoutstr));
+		if (tmpoutstr == NULL) return false;
+		fprintf(fp, "%s", tmpoutstr);
+		swkbdClose(&skp);
+		
+	}
+	
+	char *token; char buf[256];
+	token = strtok(tmpoutstr, "/");
+	
+	while(token != NULL) {
+		token = strtok(NULL, "/");
+		if (token != NULL) strcpy(buf, token);
+	}
+	
+	if(R_FAILED(svcSetHeapSize(&haddr, size))) printf("\x1b[1;3H%s%s%lx%s", CONSOLE_RED, "Error while allocating heap to: 0x", size, CONSOLE_RESET);
+	
+	int n;
+	for (n = 0; buf[n] != '\0'; n++)  {
+		if (buf[n] == '.') {
+			fclose(fp);
+			return true;
+		}
+	}
+	
+	if (buf[n] == '\0') {
+		
+		printf("\x1b[6;3H%s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?", CONSOLE_RESET);
+		printf("\x1b[8;3HPress [A] to continue");
+		printf("\x1b[9;3HPress [B] to skip");
+		
+		while(appletMainLoop()) {
+			hidScanInput();
+			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+		
+			if (kDown & KEY_A) {
+				rc = swkbdCreate(&skp, 0);
+				
+				if (R_SUCCEEDED(rc)) {
+					
+					char tmp[16] = {0};
+					swkbdConfigMakePresetDefault(&skp);
+					swkbdConfigSetGuideText(&skp, "insert extension i.e. 'nsp' or 'rar' without '.'");
+	
+					rc = swkbdShow(&skp, tmp, sizeof(tmp));
+					if (tmp == NULL) return false;
+					fprintf(fp, ".%s", tmp);
+					swkbdClose(&skp);
+					break;
+				}
+			}
+			if (kDown & KEY_B) break;
+			
+			consoleUpdate(NULL);
+		}
+	}
+	
+	fclose(fp);
+	return true;
+	
+}
+
 void FILE_TRANSFER_HTTP(char *url, char path[], int a) {
+	consoleClear();
 	FILE *dest;
 	chdir(path);
 	

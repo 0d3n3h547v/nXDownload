@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <switch.h>
+#include <stdbool.h>// bool = 1 == true; 0 == false;
 #define HALF_SCREEN 40
 
 struct V {
@@ -18,6 +19,7 @@ struct menu {
 } initial;
 
 void title(char *str);
+bool menu_main(void);
 void menu_options(void);
 
 #endif
