@@ -19,13 +19,11 @@ void title(char *str) {
 
 void menu_options(void) {
 	
-	struct menu initial;
-	
 	char *tiles[16] = {
 		"Update latest beta nXDownload",
 		"Download from input.txt",
 		"Download temporaly URL",
-		"File Transfer Protocol (FTP)",
+		"File Transfer Protocol (FTP)"
 	};
 	
 	initial.m = 5;

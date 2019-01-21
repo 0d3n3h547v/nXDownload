@@ -39,7 +39,7 @@ static int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
   return 0;
 }
 
-static int older_progress(void *p, double dltotal, double dlnow) {
+static int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow) {
 	return xferinfo(p, (curl_off_t)dltotal, (curl_off_t)dlnow);
 }
 

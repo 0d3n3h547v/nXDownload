@@ -15,7 +15,7 @@ struct menu {
 	char *exit;
 	short int n;
 	short int m;
-};
+} initial;
 
 void title(char *str);
 void menu_options(void);
