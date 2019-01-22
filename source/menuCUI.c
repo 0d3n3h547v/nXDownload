@@ -19,6 +19,21 @@ void title(char *str) {
 	return;
 }
 
+bool RequestExit(void) {
+	printf("\n\n%s%s%s", CONSOLE_GREEN, "Finish!\n", CONSOLE_RESET);
+	printf("\npress [+] to exit");
+	printf("\npress [-] to continue");
+	
+	while(appletMainLoop()) {
+		hidScanInput();
+		u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+		
+		if (kDown & KEY_PLUS) return true;
+		if (kDown & KEY_MINUS) return false;
+		consoleUpdate(NULL);
+	}
+}
+
 void menu_options(void) {
 	
 	char *tiles[16] = {
@@ -82,28 +97,30 @@ bool menu_main(void) {
 		
 		if (kDown & KEY_A) {
 			if (select == 5) {
-				nXDownloadUpdate();
-				break;
+				int z = nXDownloadUpdate();
+				if (z == 1) return true;
 			}
 			
 			if (select == 6) {
-				FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 1);
-				return true;
+				int z = FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 1);
+				if (z == 1) return true;
 			}
 			
 			if (select == 7) 
 			{
-				short int a = FILE_TRANSFER_HTTP_TEMPORALY();
-				if (a == 1) FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2);
-				return true;
+				int z = FILE_TRANSFER_HTTP_TEMPORALY();
+				if (z == 1) {
+					int w;
+					w = FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2);
+				}
+				if (w == 1) return true;
 			}
 			
-			if (select == 10) return false;
+			if (select == 10) return true;
 		}
 		
-		if (kDown & KEY_PLUS) return false;
+		if (kDown & KEY_PLUS) return true;
 		
 		consoleUpdate(NULL);
 	}
-	return true;
 }

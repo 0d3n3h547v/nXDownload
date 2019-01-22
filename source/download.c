@@ -7,6 +7,7 @@
 #include <stdbool.h>// bool = 1 == true; 0 == false;
 #include <curl/curl.h>
 #include "includes/download.h"
+#include "includes/menuCUI.h"
 
 /* Functions */
 void curlInit(void) {
@@ -19,32 +20,36 @@ void curlExit(void) {
 	socketExit();
 }
 
-void nXDownloadUpdate(void) {
+bool nXDownloadUpdate(void) {
 	char url[] = "http://projects00.000webhostapp.com/nXDownload.nro";
 	chdir("sdmc:/switch/nXDownload/");
 	
 	FILE *dest;
-	dest = fopen("nXDownloader_newer.nro", "wb");
+	dest = fopen("nXDownload_new.nro", "wb");
 	
 	if (curl) {
-		curl_easy_setopt(curl, CURLOPT_URL, url);			// getting URL from char *url
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);		// useful for debugging
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); // skipping cert. verification, if needed
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); // skipping hostname verification, if needed
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);	// writes pointer into FILE *destination
-        res = curl_easy_perform(curl);						// perform tasks curl_easy_setopt asked before
+		curl_easy_setopt(curl, CURLOPT_URL, url);						// getting URL from char *url
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);					// useful for debugging
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); 			// skipping cert. verification, if needed
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); 			// skipping hostname verification, if needed
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);				// writes pointer into FILE *destination
+        while((res = curl_easy_perform(curl))) consoleUpdate(NULL);		// perform tasks curl_easy_setopt asked before
+		
 		fclose(dest);
+		curl_easy_cleanup(curl); // Cleanup chunk data, resets functions.
 		
 		if (res != CURLE_OK) {
 			printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
-			return;
+			return false;
 		}
 	}
 
-	curl_easy_cleanup(curl); // Cleanup chunk data, resets functions.
 	remove("sdmc:/switch/nXDownload/nXDownload.nro"); 
-	rename("sdmc:/switch/nXDownload/nXDownloader_newer.nro", "sdmc:/switch/nXDownload/nXDownloader.nro");
-	return;
+	rename("sdmc:/switch/nXDownload/nXDownload_new.nro", "sdmc:/switch/nXDownload/nXDownload.nro");
+	
+	short z = RequestExit();
+	if (z == 1) return true;
+	else return false;
 }
 
 bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
@@ -64,7 +69,7 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	if (size == 0) size = 0x2000000*16;
 	// if(R_FAILED(svcSetHeapSize(&haddr, size))) printf("\x1b[1;1H%s%s%lx%s", CONSOLE_RED, "Error while allocating heap to: 0x", size, CONSOLE_RESET);
 	
-	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) return false;
+	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) return true;
 	
 	FILE *fp;
 	fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "w");
@@ -96,52 +101,12 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	
 	if(R_FAILED(svcSetHeapSize(&haddr, size))) printf("\x1b[1;3H%s%s%lx%s", CONSOLE_RED, "Error while allocating heap to: 0x", size, CONSOLE_RESET);
 	
-	int n;
-	for (n = 0; buf[n] != '\0'; n++)  {
-		if (buf[n] == '.') {
-			fclose(fp);
-			return true;
-		}
-	}
-	
-	if (buf[n] == '\0') {
-		
-		printf("\x1b[6;3H%s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?", CONSOLE_RESET);
-		printf("\x1b[8;3HPress [A] to continue");
-		printf("\x1b[9;3HPress [B] to skip");
-		
-		while(appletMainLoop()) {
-			hidScanInput();
-			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-		
-			if (kDown & KEY_A) {
-				rc = swkbdCreate(&skp, 0);
-				
-				if (R_SUCCEEDED(rc)) {
-					
-					char tmp[16] = {0};
-					swkbdConfigMakePresetDefault(&skp);
-					swkbdConfigSetGuideText(&skp, "insert extension i.e. 'nsp' or 'rar' without '.'");
-	
-					rc = swkbdShow(&skp, tmp, sizeof(tmp));
-					if (tmp == NULL) return false;
-					fprintf(fp, ".%s", tmp);
-					swkbdClose(&skp);
-					break;
-				}
-			}
-			if (kDown & KEY_B) break;
-			
-			consoleUpdate(NULL);
-		}
-	}
-	
 	fclose(fp);
-	return true;
+	return false;
 	
 }
 
-void FILE_TRANSFER_HTTP(char *url, char path[], int a) {
+bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	consoleClear();
 	FILE *dest;
 	chdir(path);
@@ -164,7 +129,7 @@ void FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		
 		if (url == NULL) {
 			printf("\n# %s%s%s", CONSOLE_RED, "Error passing argument", CONSOLE_RESET);
-			return;
+			goto FINISH;
 		}
 		
 		// if int a equivale with 2, and everything was okay, the code below is skipped
@@ -207,7 +172,7 @@ void FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 			"There was an err while reading arguments:\nCheck that 'input.txt' at least is made like this:\n===============================\n<title> = <download/link/url>", 
 			CONSOLE_RESET);
 			
-			return;
+			goto FINISH;
 		}
 		
 		while(appletMainLoop()) {
@@ -234,8 +199,7 @@ void FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 			}
 			
 			if (kDown & KEY_B) {
-				curlExit();
-				return;
+				return false;
 			}
 			
 			if (kDown & KEY_A) {
@@ -256,12 +220,19 @@ void FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	} else { // error opening dest
 		printf("\n# %s%s%s", CONSOLE_RED, "There is no input.txt!", CONSOLE_RESET);
 		consoleUpdate(NULL);
-		return;
+		goto FINISH;
 	}
 	
 	SKIP:
+	if (tmp1[0] == 'f') if (tmp1[1] == 't') if (tmp1[2] == 'p') 
+	{
+		printf("\n# FTP founded: Give me Username & password");
+		void *haddr;
+		if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) goto FINISH;
+	}
 	
-	if (a == 0 || a == 1 || a == 2) { // this parses the url to mantain the last token, which (usually) contains the filename
+	if (a == 0 || a == 1 || a == 2) // this parses the url to mantain the last token, which (usually) contains the filename
+	{
 		
 		char *token;
 		token = strtok(tmp1, "/");
@@ -273,49 +244,48 @@ void FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		
 		int n;
 		for (n = 0; buf[n] != '\0'; n++)  {
-			if (buf[n] == '.') goto SKIP_S;
+			if (buf[n] == '.') break;
 		}
 		
 		void *haddr;
-		if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) return;
+		if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) goto FINISH;
 		
-		printf("\n\n# %s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?\n", CONSOLE_RESET);
-		printf("\n  Press [A] to continue");
-		printf("\n  Press [B] to skip\n");
+		if (buf[n] == '\0') {
+			printf("\n\n# %s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?\n", CONSOLE_RESET);
+			printf("\n  Press [A] to continue");
+			printf("\n  Press [B] to skip\n");
 		
-		Result rc;
+			Result rc;
 	
-		SwkbdConfig skp;
-		rc = swkbdCreate(&skp, 0);
+			SwkbdConfig skp;
+			rc = swkbdCreate(&skp, 0);
 	
-		while(appletMainLoop()) {
-			hidScanInput();
-			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+			while(appletMainLoop()) {
+				hidScanInput();
+				u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
 		
-			if (kDown & KEY_A) {
-				rc = swkbdCreate(&skp, 0);
+				if (kDown & KEY_A) {
+					rc = swkbdCreate(&skp, 0);
 				
-				if (R_SUCCEEDED(rc)) {
+					if (R_SUCCEEDED(rc)) {
 				
-					char tmp[16] = {0};
-					swkbdConfigMakePresetDefault(&skp);
-					swkbdConfigSetGuideText(&skp, "Remember to add `.` like `[example].nsp`");
+						char tmp[16] = {0};
+						swkbdConfigMakePresetDefault(&skp);
+						swkbdConfigSetGuideText(&skp, "Remember to add `.` like `[example].nsp`");
 	
-					rc = swkbdShow(&skp, tmp, sizeof(tmp));
-					strcat(buf, tmp);
-					swkbdClose(&skp);
-					break;
+						rc = swkbdShow(&skp, tmp, sizeof(tmp));
+						strcat(buf, tmp);
+						swkbdClose(&skp);
+						break;
+					}
 				}
+		
+				if (kDown & KEY_B) break;
+		
+				consoleUpdate(NULL);
 			}
-		
-			if (kDown & KEY_B) break;
-		
-			consoleUpdate(NULL);
 		}
-		
 	}
-	
-	SKIP_S:
 	
 	dest = fopen(buf, "r");
 	
@@ -338,7 +308,7 @@ void FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 			
 			if (kDown & KEY_B) {
 				fclose(dest); // closing early
-				return;
+				return false;
 			}
 			
 			consoleUpdate(NULL);
@@ -364,6 +334,7 @@ void FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);						// useful for debugging
 		curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP);	// following only HTTP redirects
+		if (a == 4) curl_easy_setopt(curl, CURLOPT_USERPWD, userpwd);		// if FTP is used, requires password
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);					// skipping cert. verification, if needed
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);					// skipping hostname verification, if needed
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);					// writes data into FILE *destination
@@ -379,6 +350,9 @@ void FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		free(url);
 	}
 	
+	FINISH:
 	curl_easy_cleanup(curl);
-	return; // terminate function; Congrats, you did it!
+	int z = RequestExit(); // terminate function; Congrats, you did it!
+	if (z == 1) return true;
+	else return false;
 }

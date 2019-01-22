@@ -39,16 +39,18 @@ static int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
   return 0;
 }
 
+
 static int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow) {
 	return xferinfo(p, (curl_off_t)dltotal, (curl_off_t)dlnow);
 }
 
+
 /* Prototypes */
 void curlInit(void);
 void curlExit(void);
-void nXDownloadUpdate(void);
+bool nXDownloadUpdate(void);
 void FILE_TRANSFER_FTP(char *url, char path[]);
-void FILE_TRANSFER_HTTP(char *url, char path[], int a);
+bool FILE_TRANSFER_HTTP(char *url, char path[], int a);
 bool FILE_TRANSFER_HTTP_TEMPORALY(void);
 size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
