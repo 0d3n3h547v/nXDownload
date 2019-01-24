@@ -52,7 +52,7 @@ int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
 	dlnow_Mb = dlnow / Megabytes_in_Bytes;
 	dltotal_Mb = dltotal / Megabytes_in_Bytes;
 	
-	printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " B/ %" CURL_FORMAT_CURL_OFF_T " B (%d / %d) \r", dlnow, dltotal, dlnow_Mb, dltotal_Mb);
+	printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes (%d Mb/ %d Mb) \r", dlnow, dltotal, dlnow_Mb, dltotal_Mb);
 	
 	consoleUpdate(NULL);
 	return 0;
