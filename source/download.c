@@ -9,7 +9,55 @@
 #include "includes/download.h"
 #include "includes/menuCUI.h"
 
+#define Megabytes_in_Bytes 1048576
+
+int dlnow_Mb = 0;
+int dltotal_Mb = 0;
+
 /* Functions */
+int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow) {
+	return xferinfo(p, (curl_off_t)dltotal, (curl_off_t)dlnow);
+}
+
+size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb, void *userdata) {
+	
+    const size_t cb = size * nmemb;
+    const char *hdr_str = hdr;
+    const char *compareContent = "Content-disposition:";
+
+    /* Example: 
+     * ...
+     * Content-Type: text/html
+     * Content-Disposition: filename=name1367; charset=funny; option=strange
+     */
+    if (strstr(hdr_str, compareContent)) {
+        printf ("has c-d: %s\n", hdr_str);
+    }
+	
+    return cb;
+}
+
+int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
+	struct myprogress *myp = (struct myprogress *)p;
+	CURL *curl = myp->curl;
+	TIMETYPE curtime = 0;
+ 
+	curl_easy_getinfo(curl, TIMEOPT, &curtime);
+	
+	if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
+		myp->lastruntime = curtime;
+		//if (print == 0) printf("TOTAL TIME: %f                                  \n", curtime);
+	}
+	
+	dlnow_Mb = dlnow / Megabytes_in_Bytes;
+	dltotal_Mb = dltotal / Megabytes_in_Bytes;
+	
+	printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " B/ %" CURL_FORMAT_CURL_OFF_T " B (%d / %d) \r", dlnow, dltotal, dlnow_Mb, dltotal_Mb);
+	
+	consoleUpdate(NULL);
+	return 0;
+}
+
 void curlInit(void) {
 	socketInitializeDefault();
 	curl = curl_easy_init();
@@ -20,7 +68,8 @@ void curlExit(void) {
 	socketExit();
 }
 
-bool nXDownloadUpdate(void) {
+int nXDownloadUpdate(void) {
+	consoleClear();
 	char url[] = "http://projects00.000webhostapp.com/nXDownload.nro";
 	chdir("sdmc:/switch/nXDownload/");
 	
@@ -33,7 +82,7 @@ bool nXDownloadUpdate(void) {
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); 			// skipping cert. verification, if needed
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); 			// skipping hostname verification, if needed
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);				// writes pointer into FILE *destination
-        while((res = curl_easy_perform(curl))) consoleUpdate(NULL);		// perform tasks curl_easy_setopt asked before
+        res = curl_easy_perform(curl);									// perform tasks curl_easy_setopt asked before
 		
 		fclose(dest);
 		curl_easy_cleanup(curl); // Cleanup chunk data, resets functions.
@@ -47,12 +96,12 @@ bool nXDownloadUpdate(void) {
 	remove("sdmc:/switch/nXDownload/nXDownload.nro"); 
 	rename("sdmc:/switch/nXDownload/nXDownload_new.nro", "sdmc:/switch/nXDownload/nXDownload.nro");
 	
-	short z = RequestExit();
-	if (z == 1) return true;
-	else return false;
+	int z = functionExit();
+	if (z == 1) return 1;
+	else return 0;
 }
 
-bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
+void FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	/* get heap memory */
 	consoleClear();
 	void *haddr;
@@ -69,7 +118,7 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	if (size == 0) size = 0x2000000*16;
 	// if(R_FAILED(svcSetHeapSize(&haddr, size))) printf("\x1b[1;1H%s%s%lx%s", CONSOLE_RED, "Error while allocating heap to: 0x", size, CONSOLE_RESET);
 	
-	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) return true;
+	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) printf("\n# Error: %s%s%s", CONSOLE_RED, "Error while allocating Heap Size", CONSOLE_RESET);
 	
 	FILE *fp;
 	fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "w");
@@ -85,7 +134,7 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 		swkbdConfigSetGuideText(&skp, "insert a http:// direct download link");
 	
 		rc = swkbdShow(&skp, tmpoutstr, sizeof(tmpoutstr));
-		if (tmpoutstr == NULL) return false;
+		if (tmpoutstr == NULL) return;
 		fprintf(fp, "%s", tmpoutstr);
 		swkbdClose(&skp);
 		
@@ -99,10 +148,10 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 		if (token != NULL) strcpy(buf, token);
 	}
 	
-	if(R_FAILED(svcSetHeapSize(&haddr, size))) printf("\x1b[1;3H%s%s%lx%s", CONSOLE_RED, "Error while allocating heap to: 0x", size, CONSOLE_RESET);
+	if(R_FAILED(svcSetHeapSize(&haddr, size))) fatalSimple(0);
 	
 	fclose(fp);
-	return false;
+	return;
 	
 }
 
@@ -224,12 +273,6 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	}
 	
 	SKIP:
-	if (tmp1[0] == 'f') if (tmp1[1] == 't') if (tmp1[2] == 'p') 
-	{
-		printf("\n# FTP founded: Give me Username & password");
-		void *haddr;
-		if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) goto FINISH;
-	}
 	
 	if (a == 0 || a == 1 || a == 2) // this parses the url to mantain the last token, which (usually) contains the filename
 	{
@@ -334,9 +377,9 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);						// useful for debugging
 		curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP);	// following only HTTP redirects
-		if (a == 4) curl_easy_setopt(curl, CURLOPT_USERPWD, userpwd);		// if FTP is used, requires password
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);					// skipping cert. verification, if needed
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);					// skipping hostname verification, if needed
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, dnld_header_parse);	// Testing
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);					// writes data into FILE *destination
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
@@ -352,7 +395,8 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	
 	FINISH:
 	curl_easy_cleanup(curl);
-	int z = RequestExit(); // terminate function; Congrats, you did it!
+	printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);
+	int z = functionExit(); // terminate function; Congrats, you did it!
 	if (z == 1) return true;
 	else return false;
 }

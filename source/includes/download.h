@@ -4,6 +4,7 @@
 /* Includes */
 #include <curl/curl.h>
 #include <stdio.h>
+#include <string.h>
 #include <switch.h>
 
 /* Defines */
@@ -12,7 +13,7 @@
 #define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     3
 #define STOP_DOWNLOAD_AFTER_THIS_MANY_BYTES         6000
 
-/* Structs */
+/* Structures */
 CURL *curl; 
 CURLcode res;
 
@@ -21,37 +22,24 @@ struct myprogress {
   CURL *curl;
 };
 
-static int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
-  struct myprogress *myp = (struct myprogress *)p;
-  CURL *curl = myp->curl;
-  TIMETYPE curtime = 0;
- 
-  curl_easy_getinfo(curl, TIMEOPT, &curtime);
- 
-  if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
-    myp->lastruntime = curtime;
-	printf("TOTAL TIME: %f \n", curtime);
-  }
-  
-  printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes\r", dlnow, dltotal);
-  
-  consoleUpdate(NULL);
-  return 0;
-}
-
-
-static int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow) {
-	return xferinfo(p, (curl_off_t)dltotal, (curl_off_t)dlnow);
-}
-
+struct a {
+    char        dnld_remote_fname[512];
+    char        dnld_url[512]; 
+    FILE        *dnld_stream;
+    FILE        *dbg_stream;
+    uint64_t    dnld_file_sz;
+} dnld_params;
 
 /* Prototypes */
 void curlInit(void);
 void curlExit(void);
-bool nXDownloadUpdate(void);
+int nXDownloadUpdate(void);
 void FILE_TRANSFER_FTP(char *url, char path[]);
 bool FILE_TRANSFER_HTTP(char *url, char path[], int a);
-bool FILE_TRANSFER_HTTP_TEMPORALY(void);
+void FILE_TRANSFER_HTTP_TEMPORALY(void);
+int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow);
+int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow);
+size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb, void *userdata);
 size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
 #endif

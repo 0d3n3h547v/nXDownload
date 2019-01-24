@@ -20,7 +20,7 @@ struct menu {
 
 void title(char *str);
 bool menu_main(void);
-bool RequestExit(void);
+bool functionExit(void);
 void menu_options(void);
 
 #endif

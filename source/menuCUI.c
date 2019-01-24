@@ -19,7 +19,7 @@ void title(char *str) {
 	return;
 }
 
-bool RequestExit(void) {
+bool functionExit(void) {
 	printf("\n\n%s%s%s", CONSOLE_GREEN, "Finish!\n", CONSOLE_RESET);
 	printf("\npress [+] to exit");
 	printf("\npress [-] to continue");
@@ -32,6 +32,8 @@ bool RequestExit(void) {
 		if (kDown & KEY_MINUS) return false;
 		consoleUpdate(NULL);
 	}
+	
+	return true;
 }
 
 void menu_options(void) {
@@ -71,7 +73,10 @@ bool menu_main(void) {
 	printf("\x1b[%d;1H%s>%s", select, CONSOLE_CYAN, CONSOLE_RESET);
 	
 	while(appletMainLoop()) {
-
+		
+		title("nXDownload v1.0b");
+		menu_options();
+		
 		hidScanInput();
 		u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
 		
@@ -99,21 +104,21 @@ bool menu_main(void) {
 			if (select == 5) {
 				int z = nXDownloadUpdate();
 				if (z == 1) return true;
+				consoleClear();
 			}
 			
 			if (select == 6) {
 				int z = FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 1);
 				if (z == 1) return true;
+				consoleClear();
 			}
 			
 			if (select == 7) 
 			{
-				int z = FILE_TRANSFER_HTTP_TEMPORALY();
-				if (z == 1) {
-					int w;
-					w = FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2);
-				}
+				FILE_TRANSFER_HTTP_TEMPORALY();
+				int w = FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2);
 				if (w == 1) return true;
+				consoleClear();
 			}
 			
 			if (select == 10) return true;
@@ -123,4 +128,6 @@ bool menu_main(void) {
 		
 		consoleUpdate(NULL);
 	}
+	
+	return true;
 }
