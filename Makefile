@@ -33,14 +33,13 @@ include $(DEVKITPRO)/libnx/switch_rules
 
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	src
+SOURCES		:=	source
 DATA		:=	data
-INCLUDES	:=	include
 EXEFS_SRC	:=	exefs_src
 APP_AUTHOR  :=  Dontwait00
 APP_TITLE   :=  nXDownload
 ICON        :=  Icon.jpg
-APP_VERSION :=  v0.8b
+APP_VERSION :=  v1.0b
 #ROMFS	:=	romfs
 
 #---------------------------------------------------------------------------------
