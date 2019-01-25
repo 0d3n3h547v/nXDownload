@@ -40,6 +40,5 @@ void FILE_TRANSFER_HTTP_TEMPORALY(void);
 int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow);
 int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow);
 size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb, void *userdata);
-size_t write_callback(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
 #endif

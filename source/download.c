@@ -153,11 +153,12 @@ void FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	fclose(fp);
 	return;
 	
-}
+} // sizeof
 
 bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	consoleClear();
 	FILE *dest;
+	char hn[200];
 	chdir(path);
 	
 	// using tmp1 for passing url to another char array
@@ -279,6 +280,7 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		
 		char *token;
 		token = strtok(tmp1, "/");
+		strcpy(hn, token);
 	
 		while(token != NULL) {						// getting filename from link
 			token = strtok(NULL, "/");				// get next token
@@ -366,12 +368,17 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	
     if (curl)
 	{
+		
+		char sp[256];
+		sprintf(sp, "http://%s:80", hn);
+		printf("\n\n # proxy: %s", sp);
 		prog.lastruntime = 0;
 		prog.curl = curl;
 		printf("\n\n# URL = %s%s%s", CONSOLE_GREEN, url, CONSOLE_RESET);
 		printf("\n# File = %s%s%s%s\n", CONSOLE_GREEN, path, buf, CONSOLE_RESET);
 		
 		curl_easy_setopt(curl, CURLOPT_URL, url); // getting URL from char *url
+		curl_easy_setopt(curl, CURLOPT_PROXY, sp);
 		
 		printf("\n# Debug active\n");
 		
@@ -387,6 +394,16 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		res = curl_easy_perform(curl);
 		
 		fclose(dest);
+		
+		if (res != CURLE_OK)  printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
+		/*
+		char *ip; char *sp;
+		//curl_easy_getinfo(curl, CURLINFO_PRIMARY_IP, &hn);
+		sprintf(sp, "http://%s:80", hn);
+		printf("\n\n # proxy: %s", sp);
+		curl_easy_setopt(curl, CURLOPT_PROXY, sp);
+		res = curl_easy_perform(curl);
+		*/
 		
 		if (res != CURLE_OK) printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
 		
