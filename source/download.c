@@ -371,7 +371,7 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		
 		char sp[256];
 		sprintf(sp, "http://%s:80", hn);
-		printf("\n\n # proxy: %s", sp);
+		printf("\n\n# Proxy: %s", sp);
 		prog.lastruntime = 0;
 		prog.curl = curl;
 		printf("\n\n# URL = %s%s%s", CONSOLE_GREEN, url, CONSOLE_RESET);
@@ -394,16 +394,6 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		res = curl_easy_perform(curl);
 		
 		fclose(dest);
-		
-		if (res != CURLE_OK)  printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
-		/*
-		char *ip; char *sp;
-		//curl_easy_getinfo(curl, CURLINFO_PRIMARY_IP, &hn);
-		sprintf(sp, "http://%s:80", hn);
-		printf("\n\n # proxy: %s", sp);
-		curl_easy_setopt(curl, CURLOPT_PROXY, sp);
-		res = curl_easy_perform(curl);
-		*/
 		
 		if (res != CURLE_OK) printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
 		
