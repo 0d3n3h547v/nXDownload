@@ -50,7 +50,7 @@ This homebrew was intended to download specially NSPs & XCI without problems. Bu
 
 ## Features & achievements
 - [x] add possibility to read a custom URL from `sdmc:/switch/nXDownload/input.txt`
-- [x] add pssibility to read multiple URL from `input.txt`
+- [x] add possibility to read multiple URL from `input.txt`
 - [x] add support for plain URL's (meaning writing URL directly to the Switch!)
 - [x] add support for saving plain URL's (meaning written URL will be saved in a different file *temporaly* untill new written URL is encountered)
 - [ ] add support for SDL2 projects!
