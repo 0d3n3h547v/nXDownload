@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <switch.h>
+#include <sys/stat.h>
 #include "includes/download.h"
 #include "includes/menuCUI.h"
 
