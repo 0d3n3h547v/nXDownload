@@ -8,15 +8,18 @@ int main(int argc, char **argv) {
 	consoleInit(NULL);
 	curlInit();
 	
+	// Create directory if not exist
+	struct stat st = {0};
+
+	if (stat("sdmc:/switch/nXDownload", &st) == -1) {
+		mkdir("sdmc:/switch/nXDownload", 0755);
+	}
+
 	// false should continue
 	// true should be returning
-	
-	int a = 0;
-	
-	LOOP:
-	a = menu_main();
-	
-	if (a==0) goto LOOP;
+
+	while (true) 
+		if (menu_main() == true) break;
 	
 	curlExit();
 	consoleExit(NULL);
