@@ -8,7 +8,7 @@
 int main(int argc, char **argv) {
 	consoleInit(NULL);
 	curlInit();
-	
+
 	// Create directory if not exist
 	struct stat st = {0};
 
@@ -19,10 +19,11 @@ int main(int argc, char **argv) {
 	// false should continue
 	// true should be returning
 
-	while (menu_main() == 0) {
-		asm("nop");
+	while (true) {
+		if (menu_main() == true)
+			break ;
 	}
-	
+
 	curlExit();
 	consoleExit(NULL);
 	return (EXIT_SUCCESS);

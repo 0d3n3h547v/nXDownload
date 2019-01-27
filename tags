@@ -1,0 +1,120 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	/45968eff/
+$(BUILD)	Makefile	/^$(BUILD):$/;"	t
+$(OFILES_SRC)	Makefile	/^$(OFILES_SRC)	: $(HFILES_BIN)$/;"	t
+$(OUTPUT).elf	Makefile	/^$(OUTPUT).elf	:	$(OFILES)$/;"	t
+$(OUTPUT).nro	Makefile	/^$(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp$/;"	t
+$(OUTPUT).nro	Makefile	/^$(OUTPUT).nro	:	$(OUTPUT).elf$/;"	t
+$(OUTPUT).nso	Makefile	/^$(OUTPUT).nso	:	$(OUTPUT).elf$/;"	t
+$(OUTPUT).pfs0	Makefile	/^$(OUTPUT).pfs0	:	$(OUTPUT).nso$/;"	t
+%.bin.o	Makefile	/^%.bin.o	%_bin.h :	%.bin$/;"	t
+%_bin.h	Makefile	/^%.bin.o	%_bin.h :	%.bin$/;"	t
+- File-sharing websites compatible with my tool are Mediafire, Uptobox, 1fichier, and any website that uses HTTP protocol!	README.md	/^####     - File-sharing websites compatible with my tool are Mediafire, Uptobox, 1fichier, and a/;"	t
+- Files are downloaded by default to `sdmc:/switch/nXDownload/`	README.md	/^####     - Files are downloaded by default to `sdmc:\/switch\/nXDownload\/`$/;"	t
+- Remember that this tool requires *Direct Download Links* till i find someway to parse the download link from the webpage!	README.md	/^####     - Remember that this tool requires *Direct Download Links* till i find someway to parse/;"	t
+- i.e.`<title-of-game/desciption> = <download/link/url_without_HTTPS>`	README.md	/^####     - i.e.`<title-of-game\/desciption> = <download\/link\/url_without_HTTPS>`$/;"	t
+1. Create a file .txt (from any device)	README.md	/^### 1. Create a file .txt (from any device)$/;"	S
+2. Add few lines with links with formatted arguments	README.md	/^### 2. Add few lines with links with formatted arguments$/;"	S
+3. Power on your Switch, and select what file to download!	README.md	/^### 3. Power on your Switch, and select what file to download!$/;"	S
+:star: Special thanks to (this is not in order):	README.md	/^### :star: Special thanks to (this is not in order):$/;"	S
+APP_AUTHOR	Makefile	/^APP_AUTHOR  :=  Dontwait00$/;"	m
+APP_ICON	Makefile	/^			export APP_ICON := $(TOPDIR)\/icon.jpg$/;"	m
+APP_ICON	Makefile	/^		export APP_ICON := $(TOPDIR)\/$(TARGET).jpg$/;"	m
+APP_ICON	Makefile	/^	export APP_ICON := $(TOPDIR)\/$(ICON)$/;"	m
+APP_TITLE	Makefile	/^APP_TITLE   :=  nXDownload$/;"	m
+APP_VERSION	Makefile	/^APP_VERSION :=  v1.0b$/;"	m
+ARCH	Makefile	/^ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE$/;"	m
+ASFLAGS	Makefile	/^ASFLAGS	:=	-g $(ARCH)$/;"	m
+As this tool is pretty new, and lot of my freetime goes to debugging, probably will take much time before finishing it.	README.md	/^### As this tool is pretty new, and lot of my freetime goes to debugging, probably will take muc/;"	S
+BINFILES	Makefile	/^BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)\/*.*)))$/;"	m
+BUILD	Makefile	/^BUILD		:=	build$/;"	m
+BUILD_EXEFS_SRC	Makefile	/^export BUILD_EXEFS_SRC := $(TOPDIR)\/$(EXEFS_SRC)$/;"	m
+CFILES	Makefile	/^CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)\/*.c)))$/;"	m
+CFLAGS	Makefile	/^CFLAGS	:=	-g -Wall -O2 -ffunction-sections \\$/;"	m
+CPPFILES	Makefile	/^CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)\/*.cpp)))$/;"	m
+CXXFLAGS	Makefile	/^CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions$/;"	m
+DATA	Makefile	/^DATA		:=	data$/;"	m
+DEPENDS	Makefile	/^DEPENDS	:=	$(OFILES:.o=.d)$/;"	m
+DEPSDIR	Makefile	/^export DEPSDIR	:=	$(CURDIR)\/$(BUILD)$/;"	m
+EXEFS_SRC	Makefile	/^EXEFS_SRC	:=	exefs_src$/;"	m
+FILE_TRANSFER_HTTP	source/download.c	/^bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {$/;"	f	typeref:typename:bool
+FILE_TRANSFER_HTTP_TEMPORALY	source/download.c	/^void FILE_TRANSFER_HTTP_TEMPORALY(void) {$/;"	f	typeref:typename:void
+Features & achievements	README.md	/^## Features & achievements$/;"	s
+HALF_SCREEN	source/includes/menuCUI.h	/^#define HALF_SCREEN /;"	d
+HFILES_BIN	Makefile	/^export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))$/;"	m
+ICON	Makefile	/^ICON        :=  Icon.jpg$/;"	m
+INCLUDE	Makefile	/^export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)\/$(dir)) \\$/;"	m
+LD	Makefile	/^	export LD	:=	$(CC)$/;"	m
+LD	Makefile	/^	export LD	:=	$(CXX)$/;"	m
+LDFLAGS	Makefile	/^LDFLAGS	=	-specs=$(DEVKITPRO)\/libnx\/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)$/;"	m
+LIBDIRS	Makefile	/^LIBDIRS	:= $(PORTLIBS) $(LIBNX)$/;"	m
+LIBPATHS	Makefile	/^export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)\/lib)$/;"	m
+LIBS	Makefile	/^LIBS	:= -lcurl -lz -lnx$/;"	m
+MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL	source/includes/download.h	/^#define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL /;"	d
+Main Features!	README.md	/^# Main Features!$/;"	c
+Megabytes_in_Bytes	source/download.c	/^#define Megabytes_in_Bytes /;"	d	file:
+NOTE:	README.md	/^## NOTE:$/;"	s
+OFILES	Makefile	/^export OFILES 	:=	$(OFILES_BIN) $(OFILES_SRC)$/;"	m
+OFILES_BIN	Makefile	/^export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))$/;"	m
+OFILES_SRC	Makefile	/^export OFILES_SRC	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)$/;"	m
+OUTPUT	Makefile	/^export OUTPUT	:=	$(CURDIR)\/$(TARGET)$/;"	m
+SFILES	Makefile	/^SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)\/*.s)))$/;"	m
+SOURCES	Makefile	/^SOURCES		:=	source$/;"	m
+STOP_DOWNLOAD_AFTER_THIS_MANY_BYTES	source/includes/download.h	/^#define STOP_DOWNLOAD_AFTER_THIS_MANY_BYTES /;"	d
+Select one of the links you injected!	README.md	/^## Select one of the links you injected!$/;"	s
+Some more images!	README.md	/^## Some more images!$/;"	s
+TARGET	Makefile	/^TARGET		:=	$(notdir $(CURDIR))$/;"	m
+TIMEOPT	source/includes/download.h	/^#define TIMEOPT /;"	d
+TIMETYPE	source/includes/download.h	/^#define TIMETYPE /;"	d
+TOPDIR	Makefile	/^TOPDIR ?= $(CURDIR)$/;"	m
+TOPDIR	Makefile	/^export TOPDIR	:=	$(CURDIR)$/;"	m
+This tool is pretty basic:	README.md	/^## This tool is pretty basic:$/;"	s
+V	source/includes/menuCUI.h	/^struct V {$/;"	s
+VPATH	Makefile	/^export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)\/$(dir)) \\$/;"	m
+Write URLs from the Switch!	README.md	/^## Write URLs from the Switch!$/;"	s
+_DOWNLOAD_H_	source/includes/download.h	/^#define _DOWNLOAD_H_$/;"	d
+_MENUCUI_H_	source/includes/menuCUI.h	/^#define _MENUCUI_H_$/;"	d
+a	source/includes/download.h	/^struct a {$/;"	s
+all	Makefile	/^all	:	$(OUTPUT).pfs0 $(OUTPUT).nro$/;"	t
+all	Makefile	/^all: $(BUILD)$/;"	t
+clean	Makefile	/^clean:$/;"	t
+curl	source/includes/download.h	/^  CURL *curl;$/;"	m	struct:myprogress	typeref:typename:CURL *
+curl	source/includes/download.h	/^CURL *curl; $/;"	v	typeref:typename:CURL *
+curlExit	source/download.c	/^void curlExit(void) {$/;"	f	typeref:typename:void
+curlInit	source/download.c	/^void curlInit(void) {$/;"	f	typeref:typename:void
+dbg_stream	source/includes/download.h	/^    FILE        *dbg_stream;$/;"	m	struct:a	typeref:typename:FILE *
+dlnow_Mb	source/download.c	/^int dlnow_Mb = 0;$/;"	v	typeref:typename:int
+dltotal_Mb	source/download.c	/^int dltotal_Mb = 0;$/;"	v	typeref:typename:int
+dnld_file_sz	source/includes/download.h	/^    uint64_t    dnld_file_sz;$/;"	m	struct:a	typeref:typename:uint64_t
+dnld_header_parse	source/download.c	/^size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb, void *userdata) {$/;"	f	typeref:typename:size_t
+dnld_params	source/includes/download.h	/^} dnld_params;$/;"	v	typeref:struct:a
+dnld_remote_fname	source/includes/download.h	/^    char        dnld_remote_fname[512];$/;"	m	struct:a	typeref:typename:char[512]
+dnld_stream	source/includes/download.h	/^    FILE        *dnld_stream;$/;"	m	struct:a	typeref:typename:FILE *
+dnld_url	source/includes/download.h	/^    char        dnld_url[512]; $/;"	m	struct:a	typeref:typename:char[512]
+exit	source/includes/menuCUI.h	/^	char *exit;$/;"	m	struct:menu	typeref:typename:char *
+final_length	source/includes/menuCUI.h	/^  short int final_length;$/;"	m	struct:V	typeref:typename:short int
+functionExit	source/menuCUI.c	/^bool functionExit(void) {$/;"	f	typeref:typename:bool
+half	source/includes/menuCUI.h	/^  short int half;$/;"	m	struct:V	typeref:typename:short int
+half_length	source/includes/menuCUI.h	/^  short int half_length;$/;"	m	struct:V	typeref:typename:short int
+icons	Makefile	/^	icons := $(wildcard *.jpg)$/;"	m
+initial	source/includes/menuCUI.h	/^} initial;$/;"	v	typeref:struct:menu
+lastruntime	source/includes/download.h	/^  TIMETYPE lastruntime;$/;"	m	struct:myprogress	typeref:typename:TIMETYPE
+m	source/includes/menuCUI.h	/^	short int m;$/;"	m	struct:menu	typeref:typename:short int
+main	source/main.c	/^int main(int argc, char **argv) {$/;"	f	typeref:typename:int
+menu	source/includes/menuCUI.h	/^struct menu {$/;"	s
+menu_main	source/menuCUI.c	/^bool menu_main(void) {$/;"	f	typeref:typename:bool
+menu_options	source/menuCUI.c	/^void menu_options(void) {$/;"	f	typeref:typename:void
+myprogress	source/includes/download.h	/^struct myprogress {$/;"	s
+n	source/includes/menuCUI.h	/^	short int n;$/;"	m	struct:menu	typeref:typename:short int
+nXDownload	README.md	/^# nXDownload$/;"	c
+nXDownloadUpdate	source/download.c	/^int nXDownloadUpdate(void) {$/;"	f	typeref:typename:int
+older_progress	source/download.c	/^int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow) {$/;"	f	typeref:typename:int
+res	source/includes/download.h	/^CURLcode res;$/;"	v	typeref:typename:CURLcode
+title	source/menuCUI.c	/^void title(char *str) {$/;"	f	typeref:typename:void
+var	source/includes/menuCUI.h	/^} var;$/;"	v	typeref:struct:V
+xferinfo	source/download.c	/^int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {$/;"	f	typeref:typename:int

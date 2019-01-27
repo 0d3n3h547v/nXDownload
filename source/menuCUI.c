@@ -102,26 +102,16 @@ bool menu_main(void) {
 		
 		if (kDown & KEY_A) {
 			if (select == 5) {
-				int z = nXDownloadUpdate();
-				if (z == 1) return true;
+				if (nXDownloadUpdate() == true) return true;
 				consoleClear();
-			}
-			
-			if (select == 6) {
-				int z = FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 1);
-				if (z == 1) return true;
+			} else if (select == 6) {
+				if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 1) == true) return true;
 				consoleClear();
-			}
-			
-			if (select == 7) 
-			{
+			} else if (select == 7) {
 				FILE_TRANSFER_HTTP_TEMPORALY();
-				int w = FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2);
-				if (w == 1) return true;
+				if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2) == true) return true;
 				consoleClear();
-			}
-			
-			if (select == 10) return true;
+			} else if (select == 10) return true;
 		}
 		
 		if (kDown & KEY_PLUS) return true;
