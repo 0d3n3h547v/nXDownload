@@ -52,7 +52,7 @@ int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
 	dlnow_Mb = dlnow / Megabytes_in_Bytes;
 	dltotal_Mb = dltotal / Megabytes_in_Bytes;
 	
-	printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes (%d Mb/ %d Mb) \r", dlnow, dltotal, dlnow_Mb, dltotal_Mb);
+	printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes (%d Mb of %d Mb) \r", dlnow, dltotal, dlnow_Mb, dltotal_Mb);
 	
 	consoleUpdate(NULL);
 	return 0;
@@ -92,7 +92,8 @@ int nXDownloadUpdate(void) {
 			return false;
 		}
 	}
-
+	
+	remove("sdmc:/switch/nXDownload.nro"); 
 	remove("sdmc:/switch/nXDownload/nXDownload.nro"); 
 	rename("sdmc:/switch/nXDownload/nXDownload_new.nro", "sdmc:/switch/nXDownload/nXDownload.nro");
 	
@@ -121,12 +122,37 @@ void FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) printf("\n# Error: %s%s%s", CONSOLE_RED, "Error while allocating Heap Size", CONSOLE_RESET);
 	
 	FILE *fp;
-	fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "w");
+	char tmpoutstr[256] = {0};
+	
+	if ((fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "rb")) != NULL) {
+		printf("\n# %s%s%s\n", CONSOLE_YELLOW, "'tmpfile.txt' exist already. Want to use old link or overwrite?", CONSOLE_RESET);
+		printf("\nPress [A] to continue");
+		printf("\nPress [X] to use old link");
+		
+		while(appletMainLoop()) {
+			hidScanInput();
+			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+			
+			if (kDown & KEY_A) {
+				fclose(fp);
+				fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "wb");
+				goto JUMP;
+			}
+			
+			if (kDown & KEY_X) break;
+			
+			consoleUpdate(NULL);
+		}
+		
+		while(!feof(fp)) fgets(tmpoutstr, sizeof(tmpoutstr), fp);
+		goto JUMP_TWICE;
+	}
+	
+	JUMP:;
 	
 	SwkbdConfig skp; // Software Keyboard Pointer
 	
 	rc = swkbdCreate(&skp, 0);
-	char tmpoutstr[256] = {0};
 	
 	if (R_SUCCEEDED(rc)) {
 		
@@ -140,25 +166,18 @@ void FILE_TRANSFER_HTTP_TEMPORALY(void) {
 		
 	}
 	
-	char *token; char buf[256];
-	token = strtok(tmpoutstr, "/");
-	
-	while(token != NULL) {
-		token = strtok(NULL, "/");
-		if (token != NULL) strcpy(buf, token);
-	}
-	
 	if(R_FAILED(svcSetHeapSize(&haddr, size))) fatalSimple(0);
 	
+	JUMP_TWICE:
 	fclose(fp);
 	return;
 	
-} // sizeof
+}
 
 bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	consoleClear();
 	FILE *dest;
-	char hn[200];
+	char hn[50];
 	chdir(path);
 	
 	// using tmp1 for passing url to another char array
@@ -314,7 +333,7 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 				
 					if (R_SUCCEEDED(rc)) {
 				
-						char tmp[16] = {0};
+						char tmp[21] = {0};
 						swkbdConfigMakePresetDefault(&skp);
 						swkbdConfigSetGuideText(&skp, "Remember to add `.` like `[example].nsp`");
 	
@@ -368,14 +387,15 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	
     if (curl)
 	{
-		
-		char sp[256];
-		sprintf(sp, "http://%s:80", hn);
-		printf("\n\n# Proxy: %s", sp);
 		prog.lastruntime = 0;
 		prog.curl = curl;
+		
+		char sp[150];
+		sprintf(sp, "http://%s:80", hn);
+		
 		printf("\n\n# URL = %s%s%s", CONSOLE_GREEN, url, CONSOLE_RESET);
 		printf("\n# File = %s%s%s%s\n", CONSOLE_GREEN, path, buf, CONSOLE_RESET);
+		printf("\n\n# Proxy: %s", sp);
 		
 		curl_easy_setopt(curl, CURLOPT_URL, url); // getting URL from char *url
 		curl_easy_setopt(curl, CURLOPT_PROXY, sp);
@@ -395,7 +415,7 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		
 		fclose(dest);
 		
-		if (res != CURLE_OK) printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
+		if (res != CURLE_OK)  printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
 		
 		free(url);
 	}
