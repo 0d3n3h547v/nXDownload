@@ -69,11 +69,11 @@ bool menu_main(void) {
 	short int bkp_n = initial.n + 5;
 	short int bkp_m = initial.m;
 	
-	/* Look here for colored text >> https://switchbrew.github.io/libnx/console_8h.html */
-	printf("\x1b[%d;1H%s>%s", select, CONSOLE_CYAN, CONSOLE_RESET);
-	
 	while(appletMainLoop()) {
 		
+		/* Look here for colored text >> https://switchbrew.github.io/libnx/console_8h.html */
+		printf("\x1b[%d;1H%s>%s", select, CONSOLE_CYAN, CONSOLE_RESET);
+	
 		title("nXDownload v1.0b");
 		menu_options();
 		
