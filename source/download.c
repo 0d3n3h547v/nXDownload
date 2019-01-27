@@ -93,13 +93,9 @@ int nXDownloadUpdate(void) {
 		}
 	}
 	
-	remove("sdmc:/switch/nXDownload.nro"); 
-	remove("sdmc:/switch/nXDownload/nXDownload.nro"); 
 	rename("sdmc:/switch/nXDownload/nXDownload_new.nro", "sdmc:/switch/nXDownload/nXDownload.nro");
 	
-	int z = functionExit();
-	if (z == 1) return 1;
-	else return 0;
+	return (functionExit());
 }
 
 void FILE_TRANSFER_HTTP_TEMPORALY(void) {
