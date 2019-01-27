@@ -69,13 +69,13 @@ bool menu_main(void) {
 	short int bkp_n = initial.n + 5;
 	short int bkp_m = initial.m;
 	
-	/* Look here for colored text >> https://switchbrew.github.io/libnx/console_8h.html */
-	printf("\x1b[%d;1H%s>%s", select, CONSOLE_CYAN, CONSOLE_RESET);
-	
 	while(appletMainLoop()) {
 		
 		title("nXDownload v1.0b");
 		menu_options();
+		
+		/* Look here for colored text >> https://switchbrew.github.io/libnx/console_8h.html */
+		printf("\x1b[%d;1H%s>%s", select, CONSOLE_CYAN, CONSOLE_RESET);
 		
 		hidScanInput();
 		u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
@@ -102,26 +102,16 @@ bool menu_main(void) {
 		
 		if (kDown & KEY_A) {
 			if (select == 5) {
-				int z = nXDownloadUpdate();
-				if (z == 1) return true;
+				if (nXDownloadUpdate() == true) return true;
 				consoleClear();
-			}
-			
-			if (select == 6) {
-				int z = FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 1);
-				if (z == 1) return true;
+			} else if (select == 6) {
+				if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 1) == true) return true;
 				consoleClear();
-			}
-			
-			if (select == 7) 
-			{
+			} else if (select == 7) {
 				FILE_TRANSFER_HTTP_TEMPORALY();
-				int w = FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2);
-				if (w == 1) return true;
+				if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2) == true) return true;
 				consoleClear();
-			}
-			
-			if (select == 10) return true;
+			} else if (select == 10) return true;
 		}
 		
 		if (kDown & KEY_PLUS) return true;
