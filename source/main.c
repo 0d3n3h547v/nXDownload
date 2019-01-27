@@ -8,6 +8,13 @@ int main(int argc, char **argv) {
 	consoleInit(NULL);
 	curlInit();
 	
+	// Create directory if not exist
+	struct stat st = {0};
+
+	if (stat("sdmc:/switch/nXDownload", &st) == -1) {
+		mkdir("sdmc:/switch/nXDownload", 0755);
+	}
+
 	// false should continue
 	// true should be returning
 	
