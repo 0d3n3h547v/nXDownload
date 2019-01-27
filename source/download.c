@@ -93,7 +93,6 @@ int nXDownloadUpdate(void) {
 		}
 	}
 
-	remove("sdmc:/switch/nXDownload/nXDownload.nro"); 
 	rename("sdmc:/switch/nXDownload/nXDownload_new.nro", "sdmc:/switch/nXDownload/nXDownload.nro");
 	
 	return (functionExit());
