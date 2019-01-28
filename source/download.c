@@ -60,7 +60,6 @@ int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
 
 void curlInit(void) {
 	socketInitializeDefault();
-	curl = curl_easy_init();
 }
 
 void curlExit(void) {
@@ -80,6 +79,8 @@ int nXDownloadUpdate(void) {
 		
 		CURL *curl; 
 		CURLcode res;
+		
+		curl = curl_easy_init();
 		
 		curl_easy_setopt(curl, CURLOPT_URL, url);						// getting URL from char *url
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);					// useful for debugging
@@ -392,7 +393,9 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		CURLcode res;
 		prog.lastruntime = 0;
 		prog.curl = curl;
-		
+	    
+		curl = curl_easy_init();
+	    
 		char sp[150];
 		sprintf(sp, "http://%s:80", hn);
 		
