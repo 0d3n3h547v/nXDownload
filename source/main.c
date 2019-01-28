@@ -19,11 +19,9 @@ int main(int argc, char **argv) {
 	// false should continue
 	// true should be returning
 
-	while (true) {
-		if (menu_main() == true)
-			break ;
-	}
-
+	while (true) 
+		if (menu_main() == true) break;
+	
 	curlExit();
 	consoleExit(NULL);
 	return (EXIT_SUCCESS);

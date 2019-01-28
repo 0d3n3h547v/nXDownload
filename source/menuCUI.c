@@ -77,6 +77,9 @@ bool menu_main(void) {
 		title("nXDownload v1.0b");
 		menu_options();
 		
+		/* Look here for colored text >> https://switchbrew.github.io/libnx/console_8h.html */
+		printf("\x1b[%d;1H%s>%s", select, CONSOLE_CYAN, CONSOLE_RESET);
+		
 		hidScanInput();
 		u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
 		
