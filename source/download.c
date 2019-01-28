@@ -77,6 +77,10 @@ int nXDownloadUpdate(void) {
 	dest = fopen("nXDownload_new.nro", "wb");
 	
 	if (curl) {
+		
+		CURL *curl; 
+		CURLcode res;
+		
 		curl_easy_setopt(curl, CURLOPT_URL, url);						// getting URL from char *url
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);					// useful for debugging
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); 			// skipping cert. verification, if needed
@@ -383,6 +387,9 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	
     if (curl)
 	{
+	    
+		CURL *curl; 
+		CURLcode res;
 		prog.lastruntime = 0;
 		prog.curl = curl;
 		
@@ -403,7 +410,7 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);					// skipping cert. verification, if needed
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);					// skipping hostname verification, if needed
 		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, dnld_header_parse);	// Testing
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);					// writes data into FILE *destination
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);					// writes data into FILE *destination
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
