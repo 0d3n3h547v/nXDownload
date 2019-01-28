@@ -78,9 +78,9 @@ int nXDownloadUpdate(void) {
 	CURL *curl; 
 	CURLcode res;
 	
+	curl = curl_easy_init();
+	
 	if (curl) {
-		
-		curl = curl_easy_init();
 		
 		curl_easy_setopt(curl, CURLOPT_URL, url);						// getting URL from char *url
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);					// useful for debugging
@@ -90,7 +90,7 @@ int nXDownloadUpdate(void) {
         res = curl_easy_perform(curl);									// perform tasks curl_easy_setopt asked before
 		
 		fclose(dest);
-		curl_easy_cleanup(curl); // Cleanup chunk data, resets functions.
+		curl_easy_cleanup(curl);										// Cleanup chunk data, resets functions.
 		
 		if (res != CURLE_OK) {
 			printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
@@ -389,13 +389,13 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	CURL *curl; 
 	CURLcode res;
 	
+	curl = curl_easy_init();
+	
     if (curl)
 	{
 	    
 		prog.lastruntime = 0;
 		prog.curl = curl;
-	    
-		curl = curl_easy_init();
 	    
 		char sp[150];
 		sprintf(sp, "http://%s:80", hn);
@@ -421,6 +421,7 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		res = curl_easy_perform(curl);
 		
 		fclose(dest);
+		curl_easy_cleanup(curl);
 		
 		if (res != CURLE_OK)  printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
 		
@@ -428,7 +429,6 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	}
 	
 	FINISH:
-	curl_easy_cleanup(curl);
 	printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);
 	return (functionExit());
 }
