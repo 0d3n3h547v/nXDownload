@@ -14,9 +14,6 @@
 #define STOP_DOWNLOAD_AFTER_THIS_MANY_BYTES         6000
 
 /* Structures */
-CURL *curl; 
-CURLcode res;
-
 struct myprogress {
   TIMETYPE lastruntime;
   CURL *curl;
