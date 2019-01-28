@@ -426,7 +426,5 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	FINISH:
 	curl_easy_cleanup(curl);
 	printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);
-	int z = functionExit(); // terminate function; Congrats, you did it!
-	if (z == 1) return true;
-	else return false;
+	return (functionExit());
 }
