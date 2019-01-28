@@ -75,10 +75,10 @@ int nXDownloadUpdate(void) {
 	FILE *dest;
 	dest = fopen("nXDownload_new.nro", "wb");
 	
+	CURL *curl; 
+	CURLcode res;
+	
 	if (curl) {
-		
-		CURL *curl; 
-		CURLcode res;
 		
 		curl = curl_easy_init();
 		
@@ -386,11 +386,12 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	
 	printf("\n# %s%s%s", CONSOLE_GREEN, "Starting downloading...\n", CONSOLE_RESET);
 	
+	CURL *curl; 
+	CURLcode res;
+	
     if (curl)
 	{
 	    
-		CURL *curl; 
-		CURLcode res;
 		prog.lastruntime = 0;
 		prog.curl = curl;
 	    
