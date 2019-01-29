@@ -5,6 +5,8 @@
 #include "includes/download.h"
 #include "includes/menuCUI.h"
 
+#define INT_MAX 2147483647
+
 void title(char *str) {
 	var.half = strlen (str) / 2;
 	var.half_length = var.half;
@@ -38,17 +40,16 @@ bool functionExit(void) {
 
 void menu_options(void) {
 	
-	char *tiles[16] = {
+	char *tiles[] = {
 		"Update latest beta nXDownload",
 		"Download from input.txt",
-		"Download temporaly URL",
-		"File Transfer Protocol (tmp disclosed)"
+		"Download temporaly URL"
 	};
 	
 	initial.m = 5;
 	initial.exit = "Exit";
 	
-	for (initial.n=0; initial.n < 16 ; initial.n++) {
+	for (initial.n=0; initial.n < INT_MAX ; initial.n++) {
 		if (tiles[initial.n] == NULL) break;
 		printf("\x1b[%d;3H%s", initial.m, tiles[initial.n]);
 		initial.m++;
