@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <switch.h>
-#include <stdbool.h>// bool = 1 == true; 0 == false;
+#include <stdbool.h>
 #include "includes/download.h"
 #include "includes/menuCUI.h"
 
-#define INT_MAX 2147483647
-
 void title(char *str) {
+	
+	//this should be fixed
 	var.half = strlen (str) / 2;
 	var.half_length = var.half;
 	var.final_length = HALF_SCREEN;
@@ -106,11 +106,11 @@ bool menu_main(void) {
 				if (nXDownloadUpdate() == true) return true;
 				consoleClear();
 			} else if (select == 6) {
-				if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 1) == true) return true;
+				if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 0) == true) return true;
 				consoleClear();
 			} else if (select == 7) {
 				FILE_TRANSFER_HTTP_TEMPORALY();
-				if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2) == true) return true;
+				if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 1) == true) return true;
 				consoleClear();
 			} else if (select == 10) return true;
 		}
@@ -120,5 +120,6 @@ bool menu_main(void) {
 		consoleUpdate(NULL);
 	}
 	
+	fatalSimple(0);
 	return true;
 }

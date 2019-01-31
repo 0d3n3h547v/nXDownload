@@ -20,18 +20,17 @@ struct myprogress {
 };
 
 struct a {
-    char        dnld_remote_fname[512];
-    char        dnld_url[512]; 
-    FILE        *dnld_stream;
-    FILE        *dbg_stream;
-    uint64_t    dnld_file_sz;
+    char		dnld_remote_fname[512];
+    char		dnld_url[512]; 
+    FILE		*dnld_stream;
+    FILE		*dbg_stream;
+    uint64_t	dnld_file_sz;
 } dnld_params;
 
 /* Prototypes */
 void curlInit(void);
 void curlExit(void);
 int nXDownloadUpdate(void);
-void FILE_TRANSFER_FTP(char *url, char path[]);
 bool FILE_TRANSFER_HTTP(char *url, char path[], int a);
 void FILE_TRANSFER_HTTP_TEMPORALY(void);
 int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow);
