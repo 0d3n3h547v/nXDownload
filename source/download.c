@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 #include "includes/download.h"
 #include "includes/menuCUI.h"
+#include "includes/helper.h"
 
 #define Megabytes_in_Bytes 1048576
 
@@ -176,132 +177,39 @@ void FILE_TRANSFER_HTTP_TEMPORALY(void) {
 }
 
 bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
+	
 	consoleClear();
+	
 	FILE *dest;
-	char hn[50];
+	
 	chdir(path);
 	
-	// using tmp1 for passing url to another char array
-	char tmp1[256];
-	
 	// buf here has the main function to extract the filename and use it as argument for fopen()
+	char *link;
 	char buf[256];
 	struct myprogress prog;
 	
-	if (a == 2) { // useful to pass data (url) between functions; but you need to write the tmpfile.txt with inside the url, before executing this function
+	if (a == 1) { // useful to pass data (url) between functions; but you need to write the tmpfile.txt with inside the url, before executing this function
+		
+		if ((link = getArgumentFromTmpFile("tmpfile.txt")) == NULL) return (functionExit());
 	
-		// needs to be cleaned up here after testing
-		dest = fopen("tmpfile.txt", "r");
-		while(!feof(dest)) fgets(tmp1, sizeof(tmp1), dest);
-		url = strdup(tmp1);
-		printf("\n# %s%s%s", CONSOLE_YELLOW, "Founded argument/link to use", CONSOLE_RESET);
-		fclose(dest);
+	} else {
 		
-		if (url == NULL) {
-			printf("\n# %s%s%s", CONSOLE_RED, "Error passing argument", CONSOLE_RESET);
-			goto FINISH;
-		}
+		if ((link = getArgumentFromInputFile(NULL)) == NULL) return (functionExit());
 		
-		// if int a equivale with 2, and everything was okay, the code below is skipped
-		goto SKIP; 
 	}
 	
-	consoleClear();
+	url = strdup(link);
+	char proxy[50];
 	
-	// array i will contain the argument <desc-of-download>
-	char i[512][512];
-	
-	// array f will contain the argument <download-link>
-	char f[512][512];
-	
-	// just using n to count on how many links have founded; used for debugging
-	int n;
-	
-	consoleUpdate(NULL);
-	
-	// i think this is the only way to be sure to open a file in GOOD condition, without racing
-	if ((dest = fopen("input.txt","r")) != NULL) {
-		for (n = 0; n < 512; n++) {
-			
-			if (fscanf(dest, "%s = %s", i[n], f[n]) != 2) break;
-			
-			printf("\x1b[1;1H%d links counter", n);
-			
-			if (n == 511) printf("\n# %s%s%s", CONSOLE_RED, "Too many links that i can't handle! My MAX is 511 links!", CONSOLE_RESET);
-			
-			consoleUpdate(NULL);
-		}
-		
-		// containing the number of how many links founded; used for resetting n
-		int counter = n - 1;
-		fclose(dest);
-		
-		if (i[n] == NULL || f[n] == NULL) { // error: no arguments founded as the file was open
-			printf("\n# %s%s%s",
-			CONSOLE_RED, 
-			"There was an err while reading arguments:\nCheck that 'input.txt' at least is made like this:\n===============================\n<title> = <download/link/url>", 
-			CONSOLE_RESET);
-			
-			goto FINISH;
-		}
-		
-		while(appletMainLoop()) {
-			hidScanInput();
-			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-			
-			printf("\x1b[1;1H%d links counter", n);
-			printf("\x1b[5;1HStart = %s%s%s\n\nURL = %s%s%s", CONSOLE_BLUE, i[n], CONSOLE_RESET, CONSOLE_GREEN, f[n], CONSOLE_RESET);
-			printf("\x1b[10;1HPress D-PAD [->] to look forward\n");
-			printf("Press D-PAD [<-] to look backward\n");
-			printf("\nPress [A] to start download\n");
-			printf("Press [B] to go back\n");
-			
-			if (kDown & KEY_DLEFT) {
-				consoleClear();
-				n--;
-				if (n < 0) n = counter;
-			}
-			
-			if (kDown & KEY_DRIGHT) {
-				consoleClear();
-				n++;
-				if (n > counter) n = 0;
-			}
-			
-			if (kDown & KEY_B) {
-				return false;
-			}
-			
-			if (kDown & KEY_A) {
-				sprintf(tmp1, "%s", f[n]);
-				break; 
-			}
-			
-			consoleUpdate(NULL);
-		}
-			
-		printf("\n# Done!");
-		consoleUpdate(NULL);
-		
-		// passing url to char* for libcurl; Now we need tmp1 to parse the code to get the filename
-		url = strdup(tmp1);
-		fclose(dest);
-		
-	} else { // error opening dest
-		printf("\n# %s%s%s", CONSOLE_RED, "There is no input.txt!", CONSOLE_RESET);
-		consoleUpdate(NULL);
-		goto FINISH;
-	}
-	
-	SKIP:
-	
-	if (a == 0 || a == 1 || a == 2) // this parses the url to mantain the last token, which (usually) contains the filename
+	if (a == 0 || a == 1) // this parses the url to mantain the last token, which (usually) contains the filename
 	{
 		
 		char *token;
-		token = strtok(tmp1, "/");
-		strcpy(hn, token);
-	
+		
+		token = strtok(link, "/");
+		sprintf(proxy, "http://%s:80", token);
+		
 		while(token != NULL) {						// getting filename from link
 			token = strtok(NULL, "/");				// get next token
 			if (token != NULL) strcpy(buf, token);	// copy token to buf to save possible filename from url
@@ -396,16 +304,13 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 	    
 		prog.lastruntime = 0;
 		prog.curl = curl;
-	    
-		char sp[150];
-		sprintf(sp, "http://%s:80", hn);
 		
 		printf("\n\n# URL = %s%s%s", CONSOLE_GREEN, url, CONSOLE_RESET);
 		printf("\n# File = %s%s%s%s\n", CONSOLE_GREEN, path, buf, CONSOLE_RESET);
-		printf("\n\n# Proxy: %s", sp);
+		printf("\n\n# Proxy: %s", proxy);
 		
 		curl_easy_setopt(curl, CURLOPT_URL, url); // getting URL from char *url
-		curl_easy_setopt(curl, CURLOPT_PROXY, sp);
+		curl_easy_setopt(curl, CURLOPT_PROXY, proxy);
 		
 		printf("\n# Debug active\n");
 		
