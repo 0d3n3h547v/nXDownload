@@ -5,8 +5,6 @@
 #include "includes/download.h"
 #include "includes/menuCUI.h"
 
-#define INT_MAX 2147483647
-
 void title(char *str) {
 	var.half = strlen (str) / 2;
 	var.half_length = var.half;
@@ -43,7 +41,8 @@ void menu_options(void) {
 	char *tiles[] = {
 		"Update latest beta nXDownload",
 		"Download from input.txt",
-		"Download temporaly URL"
+		"Download temporaly URL",
+		NULL
 	};
 	
 	initial.m = 5;
