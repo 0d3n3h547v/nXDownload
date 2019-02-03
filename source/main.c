@@ -5,10 +5,20 @@
 #include "includes/download.h"
 #include "includes/menuCUI.h"
 
+#ifdef DEBUG
+#include <sys/socket.h>
+#endif
+
 int main(int argc, char **argv) {
 	consoleInit(NULL);
 	curlInit();
-	
+
+	// redirect stdio to nxlink
+	#ifdef DEBUG
+	socketInitializeDefault();
+	nxlinkStdio();
+	#endif
+
 	// Create directory if not exist
 	struct stat st = {0};
 
@@ -24,5 +34,9 @@ int main(int argc, char **argv) {
 	
 	curlExit();
 	consoleExit(NULL);
+	#ifdef DEBUG
+	socketExit();
+	nxlinkStdio();
+	#endif
 	return (EXIT_SUCCESS);
 }
