@@ -111,7 +111,7 @@ bool menu_main(void) {
 				FILE_TRANSFER_HTTP_TEMPORALY();
 				if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2) == true) return true;
 				consoleClear();
-			} else if (select == 10) return true;
+			} else if (select == 9) return true;
 		}
 		
 		if (kDown & KEY_PLUS) return true;
