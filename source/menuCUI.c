@@ -41,15 +41,13 @@ void menu_options(void) {
 	char *tiles[] = {
 		"Update latest beta nXDownload",
 		"Download from input.txt",
-		"Download temporaly URL",
-		NULL
+		"Download temporaly URL"
 	};
 	
 	initial.m = 5;
 	initial.exit = "Exit";
 	
-	for (initial.n=0; initial.n < INT_MAX ; initial.n++) {
-		if (tiles[initial.n] == NULL) break;
+	for (initial.n=0; initial.n < COUNT_OF(tiles) ; initial.n++) {
 		printf("\x1b[%d;3H%s", initial.m, tiles[initial.n]);
 		initial.m++;
 	}

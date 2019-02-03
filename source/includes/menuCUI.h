@@ -6,6 +6,9 @@
 #include <stdbool.h>// bool: 1 == true; 0 == false;
 #define HALF_SCREEN 40
 
+// Define to count nb element in char **
+#define COUNT_OF(ptr) (sizeof(ptr) / sizeof((ptr)[0]))
+
 /* Structures */
 struct V {
   short int half;
