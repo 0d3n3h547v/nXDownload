@@ -103,7 +103,7 @@ int nXDownloadUpdate(void) {
 	return (functionExit());
 }
 
-void FILE_TRANSFER_HTTP_TEMPORALY(void) {
+bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	/* get heap memory */
 	consoleClear();
 	void *haddr;
@@ -159,9 +159,13 @@ void FILE_TRANSFER_HTTP_TEMPORALY(void) {
 		
 		swkbdConfigMakePresetDefault(&skp);
 		swkbdConfigSetGuideText(&skp, "insert a http:// direct download link");
+
 	
 		rc = swkbdShow(&skp, tmpoutstr, sizeof(tmpoutstr));
-		if (tmpoutstr == NULL) return;
+		if (*tmpoutstr == 0){
+			fclose(fp);
+			return (false);
+		}
 		fprintf(fp, "%s", tmpoutstr);
 		swkbdClose(&skp);
 		
@@ -171,7 +175,7 @@ void FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	
 	JUMP_TWICE:
 	fclose(fp);
-	return;
+	return (true);
 	
 }
 

@@ -1,6 +1,8 @@
-nXDownload_fork.elf
-nXDownload_fork.nacp
-nXDownload_fork.nro
-nXDownload_fork.nso
-nXDownload_fork.pfs0
+nXDownload.elf
+nXDownload.nacp
+nXDownload.nro
+nXDownload.nso
+nXDownload.pfs0
 tags
+
+*.o
