@@ -27,6 +27,7 @@ struct a {
     uint64_t    dnld_file_sz;
 } dnld_params;
 
+
 /* Prototypes */
 void curlInit(void);
 void curlExit(void);

@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <switch.h>
-#include <sys/stat.h>
+#include <unistd.h>
 #include "includes/download.h"
 #include "includes/menuCUI.h"
+#include "includes/helper.h"
 
 #ifdef DEBUG
 #include <sys/socket.h>
@@ -19,24 +20,30 @@ int main(int argc, char **argv) {
 	nxlinkStdio();
 	#endif
 
-	// Create directory if not exist
-	struct stat st = {0};
+	consoleClear();
 
-	if (stat("sdmc:/switch/nXDownload", &st) == -1) {
-		mkdir("sdmc:/switch/nXDownload", 0755);
-	}
+	if (isFileExist("sdmc:/switch/nXDownload") == false)
+		if (mkdir("sdmc:/switch/nXDownload", 0755) == -1) {
+			fprintf(stderr, "%sCannot create /switch/nXDownload, exiting ...%s\n", CONSOLE_RED, CONSOLE_RESET);
+			goto exit;
+		}
+
 
 	// false should continue
 	// true should be returning
 
 	while (true) 
 		if (menu_main() == true) break;
-	
+
+
+exit:
 	curlExit();
 	consoleExit(NULL);
+
 	#ifdef DEBUG
-	socketExit();
-	nxlinkStdio();
+		socketExit();
+		nxlinkStdio();
 	#endif
+
 	return (EXIT_SUCCESS);
 }

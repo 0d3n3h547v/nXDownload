@@ -106,13 +106,12 @@ bool menu_main(void) {
 				if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 1) == true) return true;
 				consoleClear();
 			} else if (select == 7) {
-				if (FILE_TRANSFER_HTTP_TEMPORALY() == true)
+				if (FILE_TRANSFER_HTTP_TEMPORALY() == false)
 					if (FILE_TRANSFER_HTTP(NULL, "sdmc:/switch/nXDownload/", 2) == true) return true;
 				consoleClear();
 			} else if (select == 9) return true;
 		}
 
-		printf("\x1b[20;3H%d\n", select);
 		
 		if (kDown & KEY_PLUS) return true;
 		

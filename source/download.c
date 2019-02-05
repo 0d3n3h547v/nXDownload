@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 #include "includes/download.h"
 #include "includes/menuCUI.h"
+#include "includes/helper.h"
 
 #define Megabytes_in_Bytes 1048576
 
@@ -103,80 +104,77 @@ int nXDownloadUpdate(void) {
 	return (functionExit());
 }
 
-bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
-	/* get heap memory */
-	consoleClear();
-	void *haddr;
-	Result rc;
-	
-	size_t size = 0;
-	size_t mem_available = 0, mem_used = 0;
-	
-	svcGetInfo(&mem_available, 6, CUR_PROCESS_HANDLE, 0);
-	svcGetInfo(&mem_used, 7, CUR_PROCESS_HANDLE, 0);
-	
-	if (mem_available > mem_used+0x200000) size = (mem_available - mem_used - 0x200000) & ~0x1FFFFF;
-	
-	if (size == 0) size = 0x2000000*16;
-	// if(R_FAILED(svcSetHeapSize(&haddr, size))) printf("\x1b[1;1H%s%s%lx%s", CONSOLE_RED, "Error while allocating heap to: 0x", size, CONSOLE_RESET);
-	
-	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) printf("\n# Error: %s%s%s", CONSOLE_RED, "Error while allocating Heap Size", CONSOLE_RESET);
-	
-	FILE *fp;
-	char tmpoutstr[256] = {0};
-	
-	if ((fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "rb")) != NULL) {
-		printf("\n# %s%s%s\n", CONSOLE_YELLOW, "'tmpfile.txt' exist already. Want to use old link or overwrite?", CONSOLE_RESET);
-		printf("\nPress [A] to continue");
-		printf("\nPress [X] to use old link");
-		
-		while(appletMainLoop()) {
-			hidScanInput();
-			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-			
-			if (kDown & KEY_A) {
-				fclose(fp);
-				fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "wb");
-				goto JUMP;
-			}
-			
-			if (kDown & KEY_X) break;
-			
-			consoleUpdate(NULL);
+// Return true mean pop the keyboard to write a new link
+// Return false mean use old link
+static bool	useOldLink(void)
+{
+	bool	ret = false;
+
+	printf("\n# %s%s%s\n", CONSOLE_YELLOW, "'tmpfile.txt' exist already. Want to use old link or overwrite?", CONSOLE_RESET);
+	printf("\nPress [A] to continue");
+	printf("\nPress [X] to use old link");
+
+	while(appletMainLoop()) {
+		hidScanInput();
+		u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+		if (kDown & KEY_A) {
+			ret = true;
+			break;
 		}
-		
-		while(!feof(fp)) fgets(tmpoutstr, sizeof(tmpoutstr), fp);
-		goto JUMP_TWICE;
+		if (kDown & KEY_X) {
+			ret = false;
+			break;
+		}
+
+		consoleUpdate(NULL);
 	}
-	
-	JUMP:;
-	
-	SwkbdConfig skp; // Software Keyboard Pointer
-	
+	return (ret);
+}
+
+// this function pop the keyboard and write the content in tmpfile.txt
+static bool	inputNewLink(void)
+{
+	SwkbdConfig	skp; // Software Keyboard Pointer
+	Result		rc;
+	FILE		*fp = NULL;
+	char		tmpoutstr[256] = {0};
+	bool		err = false;
+
 	rc = swkbdCreate(&skp, 0);
-	
 	if (R_SUCCEEDED(rc)) {
-		
 		swkbdConfigMakePresetDefault(&skp);
 		swkbdConfigSetGuideText(&skp, "insert a http:// direct download link");
 
-	
 		rc = swkbdShow(&skp, tmpoutstr, sizeof(tmpoutstr));
-		if (*tmpoutstr == 0){
-			fclose(fp);
-			return (false);
+		if (*tmpoutstr == 0) {
+			err = true;
 		}
-		fprintf(fp, "%s", tmpoutstr);
-		swkbdClose(&skp);
-		
+		else {
+			if ((fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "wb")) != NULL) {
+				fprintf(fp, "%s", tmpoutstr);
+				fclose(fp);
+			} else {
+				err = true;
+			}
+			swkbdClose(&skp);
+		}
+	} else {
+		err = true;
 	}
-	
-	if(R_FAILED(svcSetHeapSize(&haddr, size))) fatalSimple(0);
-	
-	JUMP_TWICE:
-	fclose(fp);
-	return (true);
-	
+
+	return (err);
+}
+
+bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
+	consoleClear();
+
+	if (isFileExist("sdmc:/switch/nXDownload/tmpfile.txt") == true) {
+		if (useOldLink() == false)
+			return (false); // Return false mean no error
+	}
+
+	return (inputNewLink());
 }
 
 bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
