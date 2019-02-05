@@ -74,7 +74,6 @@ int nXDownloadUpdate(void) {
 	chdir("sdmc:/switch/nXDownload/");
 	
 	FILE *dest;
-	dest = fopen("nXDownload_new.nro", "wb");
 	
 	CURL *curl; 
 	CURLcode res;
@@ -83,6 +82,7 @@ int nXDownloadUpdate(void) {
 	
 	if (curl) {
 		
+		dest = fopen("nXDownload_new.nro", "wb");
 		curl_easy_setopt(curl, CURLOPT_URL, url);						// getting URL from char *url
 		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);					// useful for debugging
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); 			// skipping cert. verification, if needed
