@@ -110,7 +110,7 @@ static bool	useOldLink(void)
 {
 	bool		ret = false;
 	FILE		*fp = NULL;
-	char		buff[128] = {0};
+	char		*buffer = NULL;
 	size_t		nbytes = 0;
 	struct stat	st;
 
@@ -119,7 +119,29 @@ static bool	useOldLink(void)
 	if (st.st_size == 0)
 		return (true);
 
+	// if calloc fail, pop the keyboard
+	buffer = (char *)calloc(sizeof(char), st.st_size);
+	if (buffer == NULL) {
+		return (true);
+	}
+
 	printf("\n# %s%s%s\n", CONSOLE_YELLOW, "'tmpfile.txt' exist already. Want to use old link or overwrite?", CONSOLE_RESET);
+
+	fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "r");
+	if (fp != NULL) {
+		nbytes = fread(buffer, sizeof(char), st.st_size, fp);
+
+		if (nbytes > 0) {
+			printf("\ntmpfile.txt :\n");
+			printf("\n%s\n", buffer);
+		}
+		fclose(fp);
+	}
+
+	// free memory
+	free(buffer);
+	buffer = NULL;
+
 	printf("\nPress [A] to continue");
 	printf("\nPress [X] to use old link");
 
@@ -132,16 +154,6 @@ static bool	useOldLink(void)
 			break;
 		}
 		if (kDown & KEY_X) {
-			fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "r");
-			if (fp != NULL) {
-				nbytes = fread(buff, sizeof(char), sizeof(buff), fp);
-
-				if (nbytes > 0) {
-					printf("\ntmpfile.txt :\n");
-					printf("\n%s\n", buff);
-				}
-				fclose(fp);
-			}
 
 			ret = false;
 			break;
