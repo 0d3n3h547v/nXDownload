@@ -108,7 +108,16 @@ int nXDownloadUpdate(void) {
 // Return false mean use old link
 static bool	useOldLink(void)
 {
-	bool	ret = false;
+	bool		ret = false;
+	FILE		*fp = NULL;
+	char		buff[128] = {0};
+	size_t		nbytes = 0;
+	struct stat	st;
+
+	// if tmpfile is empty, return true and pop the keyboard.
+	stat("sdmc:/switch/nXDownload/tmpfile.txt", &st);
+	if (st.st_size == 0)
+		return (true);
 
 	printf("\n# %s%s%s\n", CONSOLE_YELLOW, "'tmpfile.txt' exist already. Want to use old link or overwrite?", CONSOLE_RESET);
 	printf("\nPress [A] to continue");
@@ -123,6 +132,17 @@ static bool	useOldLink(void)
 			break;
 		}
 		if (kDown & KEY_X) {
+			fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "r");
+			if (fp != NULL) {
+				nbytes = fread(buff, sizeof(char), sizeof(buff), fp);
+
+				if (nbytes > 0) {
+					printf("\ntmpfile.txt :\n");
+					printf("\n%s\n", buff);
+				}
+				fclose(fp);
+			}
+
 			ret = false;
 			break;
 		}
