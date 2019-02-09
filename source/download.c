@@ -71,7 +71,6 @@ void curlExit(void) {
 int nXDownloadUpdate(void) {
 	consoleClear();
 	char url[] = "http://projects00.000webhostapp.com/nXDownload.nro";
-	chdir("sdmc:/switch/nXDownload/");
 	
 	FILE *dest;
 	
@@ -209,11 +208,10 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	return (inputNewLink());
 }
 
-bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
+bool FILE_TRANSFER_HTTP(char *url, int a) {
 	consoleClear();
 	FILE *dest;
 	char hn[50];
-	chdir(path);
 	
 	// using tmp1 for passing url to another char array
 	char tmp1[256];
@@ -435,7 +433,7 @@ bool FILE_TRANSFER_HTTP(char *url, char path[], int a) {
 		sprintf(sp, "http://%s:80", hn);
 		
 		printf("\n\n# URL = %s%s%s", CONSOLE_GREEN, url, CONSOLE_RESET);
-		printf("\n# File = %s%s%s%s\n", CONSOLE_GREEN, path, buf, CONSOLE_RESET);
+		printf("\n# File = %s%s%s%s\n", CONSOLE_GREEN, "/switch/nXDownload/", buf, CONSOLE_RESET);
 		printf("\n\n# Proxy: %s", sp);
 		
 		curl_easy_setopt(curl, CURLOPT_URL, url); // getting URL from char *url

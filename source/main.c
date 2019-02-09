@@ -28,6 +28,12 @@ int main(int argc, char **argv) {
 			goto exit;
 		}
 
+	if (chdir("sdmc:/switch/nXDownload/") == -1) {
+		fprintf(stderr, "%sCannot enter to /switch/nXDownload, exiting ...%s\n", CONSOLE_RED, CONSOLE_RESET);
+		goto exit;
+	}
+
+
 
 	// false should continue
 	// true should be returning
