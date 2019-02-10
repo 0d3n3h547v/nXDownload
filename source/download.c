@@ -9,6 +9,7 @@
 #include "includes/download.h"
 #include "includes/menuCUI.h"
 #include "includes/helper.h"
+#include <errno.h>
 
 #define Megabytes_in_Bytes 1048576
 
@@ -18,6 +19,42 @@ int dltotal_Mb = 0;
 /* Functions */
 int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow) {
 	return xferinfo(p, (curl_off_t)dltotal, (curl_off_t)dlnow);
+}
+
+bool	downloadFile(const char *url, const char *filename)
+{
+	FILE		*dest = NULL;
+	CURL		*curl = NULL;
+	CURLcode	res = -1;
+
+	consoleClear();
+
+	curl = curl_easy_init();
+	
+	if (curl) {
+		dest = fopen(filename, "wb");
+		if (dest == NULL) {
+			perror("fopen");
+		} else {
+			curl_easy_setopt(curl, CURLOPT_URL, url);						// getting URL from char *url
+			curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);					// useful for debugging
+			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); 			// skipping cert. verification, if needed
+			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); 			// skipping hostname verification, if needed
+			curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);				// writes pointer into FILE *destination
+			res = curl_easy_perform(curl);									// perform tasks curl_easy_setopt asked before
+
+			fclose(dest);
+		}
+	}
+
+	curl_easy_cleanup(curl);												// Cleanup chunk data, resets functions.
+
+	if (res != CURLE_OK) {
+		printf("\n# Failed: %s%s%s\n", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
+		return false;
+	}
+
+	return true;
 }
 
 size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb, void *userdata) {
@@ -70,36 +107,22 @@ void curlExit(void) {
 
 int nXDownloadUpdate(void) {
 	consoleClear();
-	char url[] = "http://projects00.000webhostapp.com/nXDownload.nro";
-	
-	FILE *dest;
-	
-	CURL *curl; 
-	CURLcode res;
-	
-	curl = curl_easy_init();
-	
-	if (curl) {
-		
-		dest = fopen("nXDownload_new.nro", "wb");
-		curl_easy_setopt(curl, CURLOPT_URL, url);						// getting URL from char *url
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);					// useful for debugging
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); 			// skipping cert. verification, if needed
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); 			// skipping hostname verification, if needed
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);				// writes pointer into FILE *destination
-        res = curl_easy_perform(curl);									// perform tasks curl_easy_setopt asked before
-		
-		fclose(dest);
-		curl_easy_cleanup(curl);										// Cleanup chunk data, resets functions.
-		
-		if (res != CURLE_OK) {
-			printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
-			return false;
+
+	if (downloadFile("http://projects00.000webhostapp.com/nXDownload.nro", "nXDownload_new.nro") == true) {
+		// Remove old nro
+		if (isFileExist("./nXDownload.nro") == true) {
+			if (remove("./nXDownload.nro") == -1)
+				printf("error code (%d)\n", errno);
 		}
+		//Rename new nro
+		if (rename("nXDownload_new.nro", "nXDownload.nro") == -1) {
+			printf("error code (%d)\n", errno);
+			perror("rename()");
+		}
+	} else {
+		printf("downloadFile() Failure !\n");
 	}
-	
-	rename("sdmc:/switch/nXDownload/nXDownload_new.nro", "sdmc:/switch/nXDownload/nXDownload.nro");
-	
+
 	return (functionExit());
 }
 
@@ -160,6 +183,7 @@ static bool	useOldLink(void)
 
 		consoleUpdate(NULL);
 	}
+
 	return (ret);
 }
 
@@ -416,49 +440,15 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 		
 	}
 	
+	// Temporary fclose until refactor
+	fclose(dest);
+
 	printf("\n# %s%s%s", CONSOLE_GREEN, "Starting downloading...\n", CONSOLE_RESET);
 	
-	CURL *curl; 
-	CURLcode res;
-	
-	curl = curl_easy_init();
-	
-    if (curl)
-	{
-	    
-		prog.lastruntime = 0;
-		prog.curl = curl;
-	    
-		char sp[150];
-		sprintf(sp, "http://%s:80", hn);
-		
-		printf("\n\n# URL = %s%s%s", CONSOLE_GREEN, url, CONSOLE_RESET);
-		printf("\n# File = %s%s%s%s\n", CONSOLE_GREEN, "/switch/nXDownload/", buf, CONSOLE_RESET);
-		printf("\n\n# Proxy: %s", sp);
-		
-		curl_easy_setopt(curl, CURLOPT_URL, url); // getting URL from char *url
-		curl_easy_setopt(curl, CURLOPT_PROXY, sp);
-		
-		printf("\n# Debug active\n");
-		
-		curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);						// useful for debugging
-		curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP);	// following only HTTP redirects
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);					// skipping cert. verification, if needed
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);					// skipping hostname verification, if needed
-		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, dnld_header_parse);	// Testing
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);					// writes data into FILE *destination
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
-		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-		res = curl_easy_perform(curl);
-		
-		fclose(dest);
-		curl_easy_cleanup(curl);
-		
-		if (res != CURLE_OK)  printf("\n# Failed: %s%s%s", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
-		
-		free(url);
-	}
+	printf("%s, %s\n", url, buf);
+	downloadFile(url, buf);
+
+	free(url);
 	
 	FINISH:
 	printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);

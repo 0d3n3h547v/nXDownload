@@ -33,8 +33,6 @@ int main(int argc, char **argv) {
 		goto exit;
 	}
 
-
-
 	// false should continue
 	// true should be returning
 
