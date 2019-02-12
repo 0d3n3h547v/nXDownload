@@ -26,12 +26,17 @@ bool	downloadFile(const char *url, const char *filename)
 	FILE		*dest = NULL;
 	CURL		*curl = NULL;
 	CURLcode	res = -1;
+	struct myprogress	prog;
 
 	consoleClear();
 
 	curl = curl_easy_init();
 	
 	if (curl) {
+
+		prog.lastruntime = 0;
+		prog.curl = curl;
+
 		dest = fopen(filename, "wb");
 		if (dest == NULL) {
 			perror("fopen");
@@ -41,6 +46,9 @@ bool	downloadFile(const char *url, const char *filename)
 			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); 			// skipping cert. verification, if needed
 			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); 			// skipping hostname verification, if needed
 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, dest);				// writes pointer into FILE *destination
+			curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
+			curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
+			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 			res = curl_easy_perform(curl);									// perform tasks curl_easy_setopt asked before
 
 			fclose(dest);
@@ -242,7 +250,6 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 	
 	// buf here has the main function to extract the filename and use it as argument for fopen()
 	char buf[256];
-	struct myprogress prog;
 	
 	if (a == 2) { // useful to pass data (url) between functions; but you need to write the tmpfile.txt with inside the url, before executing this function
 	
