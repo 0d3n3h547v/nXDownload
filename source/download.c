@@ -98,7 +98,8 @@ int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
 	dlnow_Mb = dlnow / Megabytes_in_Bytes;
 	dltotal_Mb = dltotal / Megabytes_in_Bytes;
 	
-	printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes (%d Mb of %d Mb) \r", dlnow, dltotal, dlnow_Mb, dltotal_Mb);
+	if (dltotal_Mb > 0)
+		printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes (%d Mb of %d Mb) \r", dlnow, dltotal, dlnow_Mb, dltotal_Mb);
 	
 	consoleUpdate(NULL);
 	return 0;
@@ -162,8 +163,7 @@ static bool	useOldLink(void)
 		nbytes = fread(buffer, sizeof(char), st.st_size, fp);
 
 		if (nbytes > 0) {
-			printf("\ntmpfile.txt :\n");
-			printf("\n%s\n", buffer);
+			printf("\ntmpfile.txt : %s%s%s\n", CONSOLE_GREEN, buffer, CONSOLE_RESET);
 		}
 		fclose(fp);
 	}
@@ -458,6 +458,6 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 	free(url);
 	
 	FINISH:
-	printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);
+	//printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);
 	return (functionExit());
 }
