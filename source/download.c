@@ -1,15 +1,16 @@
 /* Includes */
 #include <stdio.h>
+#include <errno.h>
 #include <switch.h>
 #include <stdlib.h> // used for alloc/malloc
 #include <string.h> // used for mini tools
 #include <unistd.h> // used for chdir()
 #include <stdbool.h>// bool = 1 == true; 0 == false;
 #include <curl/curl.h>
+
 #include "includes/download.h"
 #include "includes/menuCUI.h"
 #include "includes/helper.h"
-#include <errno.h>
 
 #define Megabytes_in_Bytes 1048576
 
@@ -23,9 +24,9 @@ int older_progress(void *p, double dltotal, double dlnow, double ultotal, double
 
 bool	downloadFile(const char *url, const char *filename)
 {
-	FILE		*dest = NULL;
-	CURL		*curl = NULL;
-	CURLcode	res = -1;
+	FILE				*dest = NULL;
+	CURL				*curl = NULL;
+	CURLcode			res = -1;
 	struct myprogress	prog;
 
 	consoleClear();
@@ -240,6 +241,50 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	return (inputNewLink());
 }
 
+// This function open a file and return the content in a char *
+static char	**getLinksInFile(const char *filename, int a)
+{
+	FILE	*fp = NULL;
+	char	**array = NULL;
+	char	*line = NULL;
+	size_t	nb_nb_lines = 0;
+	size_t	n = 0;
+	char	desc[512] = {0}, link[512] = {0};
+
+	fp = fopen(filename, "r");
+	if (fp == NULL) {
+		return (NULL);
+	}
+
+	// if error while reading file return NULL
+	nb_lines = countLinesInFile(fp);
+	if (nb_lines == -1) {
+		return NULL;
+	}
+
+	// Alloc array whith number of line in file
+	// x2 for description and link
+	// [description]
+	// [link]
+	// +1 for NULL
+	array = (char **)calloc((nb_lines * 2) + 1, sizeof(char *));
+	if (array == NULL)
+		return (NULL);
+
+
+	// store description and link
+	for (int i = 0, j = 1; getline(&line, &n, fp); i+=2; j+=2) {
+		sscanf(line, "%s = %s", desc, link);
+		array[i] = strdup(desc);
+		array[j] = strdup(link);
+	}
+
+	free(line);
+	line = NULL;
+
+	return (array);
+}
+
 bool FILE_TRANSFER_HTTP(char *url, int a) {
 	consoleClear();
 	FILE *dest;
@@ -251,8 +296,8 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 	// buf here has the main function to extract the filename and use it as argument for fopen()
 	char buf[256];
 	
-	if (a == 2) { // useful to pass data (url) between functions; but you need to write the tmpfile.txt with inside the url, before executing this function
-	
+	// TODO : Write funtion to parse tmpfile.txt
+	if (a == WITH_TMP_FILE) { // useful to pass data (url) between functions; but you need to write the tmpfile.txt with inside the url, before executing this function
 		// needs to be cleaned up here after testing
 		dest = fopen("tmpfile.txt", "r");
 		while(!feof(dest)) fgets(tmp1, sizeof(tmp1), dest);
@@ -282,31 +327,31 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 	
 	consoleUpdate(NULL);
 	
-	// i think this is the only way to be sure to open a file in GOOD condition, without racing
-	if ((dest = fopen("input.txt","r")) != NULL) {
-		for (n = 0; n < 512; n++) {
+	/*// i think this is the only way to be sure to open a file in GOOD condition, without racing*/
+	/*if ((dest = fopen("input.txt","r")) != NULL) {*/
+		/*for (n = 0; n < 512; n++) {*/
 			
-			if (fscanf(dest, "%s = %s", i[n], f[n]) != 2) break;
+			/*if (fscanf(dest, "%s = %s", i[n], f[n]) != 2) break;*/
 			
-			printf("\x1b[1;1H%d links counter", n);
+			/*printf("\x1b[1;1H%d links counter", n);*/
 			
-			if (n == 511) printf("\n# %s%s%s", CONSOLE_RED, "Too many links that i can't handle! My MAX is 511 links!", CONSOLE_RESET);
+			/*if (n == 511) printf("\n# %s%s%s", CONSOLE_RED, "Too many links that i can't handle! My MAX is 511 links!", CONSOLE_RESET);*/
 			
-			consoleUpdate(NULL);
-		}
+			/*consoleUpdate(NULL);*/
+		/*}*/
 		
-		// containing the number of how many links founded; used for resetting n
-		int counter = n - 1;
-		fclose(dest);
+		/*// containing the number of how many links founded; used for resetting n*/
+		/*int counter = n - 1;*/
+		/*fclose(dest);*/
 		
-		if (i[n] == NULL || f[n] == NULL) { // error: no arguments founded as the file was open
-			printf("\n# %s%s%s",
-			CONSOLE_RED, 
-			"There was an err while reading arguments:\nCheck that 'input.txt' at least is made like this:\n===============================\n<title> = <download/link/url>", 
-			CONSOLE_RESET);
+		/*if (i[n] == NULL || f[n] == NULL) { // error: no arguments founded as the file was open*/
+			/*printf("\n# %s%s%s",*/
+			/*CONSOLE_RED, */
+			/*"There was an err while reading arguments:\nCheck that 'input.txt' at least is made like this:\n===============================\n<title> = <download/link/url>", */
+			/*CONSOLE_RESET);*/
 			
-			goto FINISH;
-		}
+			/*goto FINISH;*/
+		/*}*/
 		
 		while(appletMainLoop()) {
 			hidScanInput();

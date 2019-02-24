@@ -1,5 +1,31 @@
 #include "includes/helper.h"
 
+size_t	countLinesInFile(FILE *fp)
+{
+	size_t		lines = 1;
+	struct stat	st;
+
+	if (stat("tmpfile.txt", &st) == -1) {
+		return (-1);
+	}
+
+	// if file is empty return 0
+	if (st.st_size == 0) {
+		return (0);
+	}
+
+	// count number of '\n'
+	while (!feof(fp)) {
+		if (fgetc(fp) == '\n') {
+			++lines;
+		}
+	}
+
+	fclose(fp);
+
+	return (lines);
+}
+
 void userAppInit(void)
 {
 	void *addr = NULL;

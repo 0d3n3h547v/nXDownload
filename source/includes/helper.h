@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <switch.h>
 
+#define WITHOUT_TMP_FILE	1
+#define WITH_TMP_FILE		2
+
 typedef	struct	heapMemory {
 	void		*haddr;
 	size_t		size;
@@ -16,5 +19,6 @@ typedef	struct	heapMemory {
 bool	isFileExist(const char *file);
 void	userAppInit(void);
 void	getHeapMemory(s_heapMemory heapMemory);
+size_t	countLinesInFile(char *file);
 
 #endif
