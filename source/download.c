@@ -15,6 +15,7 @@
 
 int dlnow_Mb = 0;
 int dltotal_Mb = 0;
+char global_f_tmp[512]; /* we need this global FILE variable for passing args */
 
 /* Functions */
 int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow) {
@@ -49,6 +50,9 @@ bool	downloadFile(const char *url, const char *filename)
 			curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
 			curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
 			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+			
+			if (strlen(global_f_tmp) != 0) curl_easy_setopt(curl, CURLOPT_USERPWD, global_f_tmp);
+			
 			res = curl_easy_perform(curl);									// perform tasks curl_easy_setopt asked before
 
 			fclose(dest);
@@ -61,7 +65,7 @@ bool	downloadFile(const char *url, const char *filename)
 		printf("\n# Failed: %s%s%s\n", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
 		return false;
 	}
-
+	
 	return true;
 }
 
@@ -92,7 +96,6 @@ int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
 	
 	if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
 		myp->lastruntime = curtime;
-		//if (print == 0) printf("TOTAL TIME: %f                                  \n", curtime);
 	}
 	
 	dlnow_Mb = dlnow / Megabytes_in_Bytes;
@@ -460,4 +463,55 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 	FINISH:
 	//printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);
 	return (functionExit());
+}
+
+bool inputUser(void)
+{
+	bool err = false;
+	SwkbdConfig	skp; // Software Keyboard Pointer
+	Result		rc = swkbdCreate(&skp, 0);
+	char		tmpout[256];
+	
+	if (R_SUCCEEDED(rc)) {
+		
+		swkbdConfigMakePresetDefault(&skp);
+		swkbdConfigSetGuideText(&skp, "Insert Username");
+		rc = swkbdShow(&skp, tmpout, sizeof(tmpout));
+		
+		if (strlen(tmpout) == 0) err = true;
+		
+	} else err = true;
+	
+	if (err == false && strlen(tmpout) != 0) {
+	sprintf(global_f_tmp, "%s", tmpout);
+	} else err = true;
+	
+	return err;
+}
+
+bool inputPassword(void)
+{
+	bool	    err = false;
+	SwkbdConfig	skp; // Software Keyboard Pointer
+	Result		rc = {0};
+	char		tmpout[256] = {0};
+	rc = swkbdCreate(&skp, 0);
+	
+	if (R_SUCCEEDED(rc)) {
+		
+		swkbdConfigMakePresetDefault(&skp);
+		swkbdConfigSetGuideText(&skp, "Insert Password (if neccessary)");
+		rc = swkbdShow(&skp, tmpout, sizeof(tmpout));
+		
+		if (strlen(tmpout) != 0) strcat(global_f_tmp, ":");
+		
+	} else err = true;
+	
+	if (err == false) {
+	
+		strcat(global_f_tmp, tmpout);
+		
+	} else err = true;
+	
+	return err;
 }

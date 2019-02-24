@@ -4,6 +4,7 @@
 #include <stdbool.h>// bool = 1 == true; 0 == false;
 #include "includes/download.h"
 #include "includes/menuCUI.h"
+#include "includes/helper.h"
 
 void title(char *str) {
 	var.half = strlen (str) / 2;
@@ -41,7 +42,8 @@ void menu_options(void) {
 	char *tiles[] = {
 		"Update latest beta nXDownload",
 		"Download from input.txt",
-		"Download temporaly URL"
+		"Download temporaly URL",
+		"Download tmp URL (with User & Password)"
 	};
 	
 	initial.m = 5;
@@ -59,9 +61,11 @@ void menu_options(void) {
 }
 
 bool menu_main(void) {
+	
 	consoleClear();
 	title("nXDownload v1.0b");
 	menu_options();
+	userAppInit();
 	
 	int select = 5;
 	short int bkp_n = initial.n + 5;
@@ -109,7 +113,18 @@ bool menu_main(void) {
 				if (FILE_TRANSFER_HTTP_TEMPORALY() == false)
 					if (FILE_TRANSFER_HTTP(NULL, 2) == true) return true;
 				consoleClear();
-			} else if (select == 9) return true;
+			} else if (select == 8) {
+				
+				if (inputUser() != true) {
+					if (inputPassword() != true) {
+						if (FILE_TRANSFER_HTTP_TEMPORALY() == false) {
+							if (FILE_TRANSFER_HTTP(NULL, 2) == true) return true;
+						}
+					}
+				}
+				
+				consoleClear();
+			} else if (select == 10) return true;
 		}
 
 		

@@ -29,8 +29,11 @@ struct a {
 
 
 /* Prototypes */
+
+// init curl sockets
 void curlInit(void);
 void curlExit(void);
+
 int nXDownloadUpdate(void);
 void FILE_TRANSFER_FTP(char *url, char path[]);
 bool FILE_TRANSFER_HTTP(char *url, int a);
@@ -38,5 +41,8 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void);
 int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow);
 int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow);
 size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb, void *userdata);
+/* this func's is used for auth in case ftp/http requires */
+bool inputPassword(void);
+bool inputUser(void);
 
 #endif
