@@ -7,3 +7,7 @@ tags
 build
 
 *.o
+*.gch
+
+peda-session-a.out.txt
+.gdb_history
