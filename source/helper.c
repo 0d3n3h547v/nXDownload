@@ -1,11 +1,60 @@
 #include "includes/helper.h"
 
-size_t	countLinesInFile(FILE *fp)
+// This function open a file and return the content in a char *
+char	**getLinksInFile(const char *filename)
 {
-	size_t		lines = 1;
+	int		fd = 0;
+	char	**array = NULL;
+	char	*line = NULL;
+	int		nb_lines = 0;
+	char	desc[512] = {0}, link[512] = {0};
+
+	fd = open(filename, O_RDONLY);
+	if (fd == -1) {
+		printf("error\n");
+		return (NULL);
+	}
+
+	// if error while reading file return NULL
+	nb_lines = countLinesInFile(fd);
+	if (nb_lines == -1) {
+		printf("error\n");
+		return NULL;
+	}
+
+	// Alloc array whith number of line in file
+	// x2 for description and link
+	// [description]
+	// [link]
+	// +1 for NULL
+	array = (char **)calloc((nb_lines * 2) + 1, sizeof(char *));
+	if (array == NULL)
+	{
+		printf("error\n");
+		return (NULL);
+	}
+
+	// store description and link
+	for (int i = 0, j = 1; get_next_line(fd, &line); i+=2, j+=2) {
+		sscanf(line, "%s = %s", desc, link);
+		array[i] = strdup(desc);
+		array[j] = strdup(link);
+		free(line);
+	}
+
+	line = NULL;
+
+	return (array);
+}
+
+size_t	countLinesInFile(int fd)
+{
+	char		*line = NULL;
+	int			nb_lines = 0;
+	off_t		position = 0;
 	struct stat	st;
 
-	if (stat("tmpfile.txt", &st) == -1) {
+	if (fstat(fd, &st) == -1) {
 		return (-1);
 	}
 
@@ -14,16 +63,20 @@ size_t	countLinesInFile(FILE *fp)
 		return (0);
 	}
 
+	// save offset position
+	position = lseek(fd, 0, SEEK_CUR);
+
 	// count number of '\n'
-	while (!feof(fp)) {
-		if (fgetc(fp) == '\n') {
-			++lines;
-		}
+	while (get_next_line(fd, &line) > 0) {
+		nb_lines++;
+		free(line);
+		line = NULL;
 	}
 
-	fclose(fp);
+	// reset ptr
+	lseek(fd, position, SEEK_SET);
 
-	return (lines);
+	return (nb_lines);
 }
 
 void userAppInit(void)

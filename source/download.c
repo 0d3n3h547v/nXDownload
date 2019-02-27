@@ -241,50 +241,6 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	return (inputNewLink());
 }
 
-// This function open a file and return the content in a char *
-static char	**getLinksInFile(const char *filename, int a)
-{
-	FILE	*fp = NULL;
-	char	**array = NULL;
-	char	*line = NULL;
-	size_t	nb_nb_lines = 0;
-	size_t	n = 0;
-	char	desc[512] = {0}, link[512] = {0};
-
-	fp = fopen(filename, "r");
-	if (fp == NULL) {
-		return (NULL);
-	}
-
-	// if error while reading file return NULL
-	nb_lines = countLinesInFile(fp);
-	if (nb_lines == -1) {
-		return NULL;
-	}
-
-	// Alloc array whith number of line in file
-	// x2 for description and link
-	// [description]
-	// [link]
-	// +1 for NULL
-	array = (char **)calloc((nb_lines * 2) + 1, sizeof(char *));
-	if (array == NULL)
-		return (NULL);
-
-
-	// store description and link
-	for (int i = 0, j = 1; getline(&line, &n, fp); i+=2; j+=2) {
-		sscanf(line, "%s = %s", desc, link);
-		array[i] = strdup(desc);
-		array[j] = strdup(link);
-	}
-
-	free(line);
-	line = NULL;
-
-	return (array);
-}
-
 bool FILE_TRANSFER_HTTP(char *url, int a) {
 	consoleClear();
 	FILE *dest;

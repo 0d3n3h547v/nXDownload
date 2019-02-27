@@ -5,6 +5,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <switch.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#include "get_next_line.h"
 
 #define WITHOUT_TMP_FILE	1
 #define WITH_TMP_FILE		2
@@ -19,6 +23,7 @@ typedef	struct	heapMemory {
 bool	isFileExist(const char *file);
 void	userAppInit(void);
 void	getHeapMemory(s_heapMemory heapMemory);
-size_t	countLinesInFile(char *file);
+size_t	countLinesInFile(int fd);
+char	**getLinksInFile(const char *filename);
 
 #endif
