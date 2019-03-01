@@ -1,4 +1,5 @@
 /* Includes */
+#include <time.h>
 #include <stdio.h>
 #include <switch.h>
 #include <stdlib.h> // used for alloc/malloc
@@ -12,9 +13,19 @@
 #include <errno.h>
 
 #define Megabytes_in_Bytes 1048576
+#define Kibibyte_in_Bytes 1024
 
 int dlnow_Mb = 0;
 int dltotal_Mb = 0;
+
+// measure download speed
+bool open_room = false;
+bool once = false;
+int dlspeed = 0;
+int dl_curr = 0;
+int	curr_sec = 0; // current second from system
+int ticket = 0; // current (second + 1) from system
+
 char global_f_tmp[512]; /* we need this global FILE variable for passing args */
 
 /* Functions */
@@ -54,7 +65,7 @@ bool	downloadFile(const char *url, const char *filename)
 			if (strlen(global_f_tmp) != 0) curl_easy_setopt(curl, CURLOPT_USERPWD, global_f_tmp);
 			
 			res = curl_easy_perform(curl);									// perform tasks curl_easy_setopt asked before
-
+			
 			fclose(dest);
 		}
 	}
@@ -101,8 +112,31 @@ int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
 	dlnow_Mb = dlnow / Megabytes_in_Bytes;
 	dltotal_Mb = dltotal / Megabytes_in_Bytes;
 	
-	if (dltotal_Mb > 0)
-		printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes (%d Mb of %d Mb) \r", dlnow, dltotal, dlnow_Mb, dltotal_Mb);
+	// we need to create a separated room inside this "while" loop
+	// so we can process this room once every so often
+	curr_sec = time(0);
+	
+	if (open_room == false) {
+		ticket = time(0) + 1;
+		dl_curr = dlnow;
+		open_room = true; // closing room
+	}
+	
+	if (curr_sec >= ticket) {
+		dlspeed = (dlnow - dl_curr) / Kibibyte_in_Bytes;
+		open_room = false; // opening room
+	}
+	
+	if (dltotal_Mb == 1) {
+		printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes\r", dlnow, dltotal);
+	} else if (dltotal_Mb > 1) {
+		printf("# DOWNLOAD: %d Mb of %d Mb (%04d Kb/s)\r", dlnow_Mb, dltotal_Mb, dlspeed);
+	}
+	
+	if (dlnow == dltotal && dltotal > 0 && once == false) {
+		printf("\n                                           ");
+		once = true;
+	}
 	
 	consoleUpdate(NULL);
 	return 0;

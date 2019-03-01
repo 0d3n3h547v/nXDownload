@@ -63,7 +63,7 @@ void menu_options(void) {
 bool menu_main(void) {
 	
 	consoleClear();
-	title("nXDownload v1.0b");
+	title("nXDownload v1.1b");
 	menu_options();
 	userAppInit();
 	
@@ -73,7 +73,7 @@ bool menu_main(void) {
 	
 	while(appletMainLoop()) {
 		
-		title("nXDownload v1.0b");
+		title("nXDownload v1.1b");
 		menu_options();
 		
 		/* Look here for colored text >> https://switchbrew.github.io/libnx/console_8h.html */
