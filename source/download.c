@@ -45,7 +45,6 @@ bool	downloadFile(const char *url, const char *filename)
 	curl = curl_easy_init();
 	
 	if (curl) {
-
 		prog.lastruntime = 0;
 		prog.curl = curl;
 
@@ -81,7 +80,7 @@ bool	downloadFile(const char *url, const char *filename)
 }
 
 size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb, void *userdata) {
-	
+
     const size_t cb = size * nmemb;
     const char *hdr_str = hdr;
     const char *compareContent = "Content-disposition:";
@@ -94,20 +93,11 @@ size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb, void *userdata) {
     if (strstr(hdr_str, compareContent)) {
         printf ("has c-d: %s\n", hdr_str);
     }
-	
+
     return cb;
 }
 
 int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
-	struct myprogress *myp = (struct myprogress *)p;
-	CURL *curl = myp->curl;
-	TIMETYPE curtime = 0;
- 
-	curl_easy_getinfo(curl, TIMEOPT, &curtime);
-	
-	if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
-		myp->lastruntime = curtime;
-	}
 	
 	dlnow_Mb = dlnow / Megabytes_in_Bytes;
 	dltotal_Mb = dltotal / Megabytes_in_Bytes;
@@ -128,13 +118,13 @@ int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
 	}
 	
 	if (dltotal_Mb == 1) {
-		printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes\r", dlnow, dltotal);
+		printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes | %3d Kb/s", dlnow, dltotal, dlspeed);
 	} else if (dltotal_Mb > 1) {
-		printf("# DOWNLOAD: %d Mb of %d Mb (%04d Kb/s)\r", dlnow_Mb, dltotal_Mb, dlspeed);
+		printf("# DOWNLOAD: %d Mb of %d Mb | %3d Kb/s\r", dlnow_Mb, dltotal_Mb, dlspeed);
 	}
 	
 	if (dlnow == dltotal && dltotal > 0 && once == false) {
-		printf("\n                                           ");
+		printf("\n                                                                                "); // lol, is required
 		once = true;
 	}
 	
