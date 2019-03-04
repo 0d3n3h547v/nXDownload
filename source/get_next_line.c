@@ -77,8 +77,7 @@ static int	read_file(char *buf, char **line, char **stat)
 	char	*content;
 	char	*tmp;
 
-	if ((content = strchr(buf, '\n')))
-	{
+	if ((content = strchr(buf, '\n'))) {
 		content[0] = '\0';
 		tmp = ft_strjoin(*line, buf);
 		free(*line);
@@ -86,8 +85,7 @@ static int	read_file(char *buf, char **line, char **stat)
 		if (strlen(++content))
 			*stat = strdup(content);
 	}
-	else
-	{
+	else {
 		tmp = ft_strjoin(*line, buf);
 		free(*line);
 		*line = tmp;
@@ -105,13 +103,11 @@ int			get_next_line(int const fd, char **line)
 		return (-1);
 	*line = NULL;
 	buf = calloc(sizeof(char), BUFF_SIZE +1);
-	if (split_stat(line, &stat) == 1)
-	{
+	if (split_stat(line, &stat) == 1) {
 		free(buf);
 		return (1);
 	}
-	while ((ret = read(fd, buf, BUFF_SIZE)) > 0)
-	{
+	while ((ret = read(fd, buf, BUFF_SIZE)) > 0) {
 		buf[ret] = '\0';
 		if (read_file(buf, line, &stat) == 1)
 			break ;

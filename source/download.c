@@ -257,6 +257,7 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 		// needs to be cleaned up here after testing
 		dest = fopen("tmpfile.txt", "r");
 		while(!feof(dest)) fgets(tmp1, sizeof(tmp1), dest);
+		// TODO : Don't need to use strdup, can use ptr instead
 		url = strdup(tmp1);
 		printf("\n# %s%s%s", CONSOLE_YELLOW, "Founded argument/link to use", CONSOLE_RESET);
 		fclose(dest);
@@ -267,95 +268,81 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 		}
 		
 		// if int a equivale with 2, and everything was okay, the code below is skipped
-		goto SKIP; 
-	}
-	
-	consoleClear();
-	
-	// array i will contain the argument <desc-of-download>
-	char i[512][512];
-	
-	// array f will contain the argument <download-link>
-	char f[512][512];
-	
-	// just using n to count on how many links have founded; used for debugging
-	int n;
-	
-	consoleUpdate(NULL);
-	
-	/*// i think this is the only way to be sure to open a file in GOOD condition, without racing*/
-	/*if ((dest = fopen("input.txt","r")) != NULL) {*/
-		/*for (n = 0; n < 512; n++) {*/
-			
-			/*if (fscanf(dest, "%s = %s", i[n], f[n]) != 2) break;*/
-			
-			/*printf("\x1b[1;1H%d links counter", n);*/
-			
-			/*if (n == 511) printf("\n# %s%s%s", CONSOLE_RED, "Too many links that i can't handle! My MAX is 511 links!", CONSOLE_RESET);*/
-			
-			/*consoleUpdate(NULL);*/
-		/*}*/
-		
-		/*// containing the number of how many links founded; used for resetting n*/
-		/*int counter = n - 1;*/
-		/*fclose(dest);*/
-		
-		/*if (i[n] == NULL || f[n] == NULL) { // error: no arguments founded as the file was open*/
-			/*printf("\n# %s%s%s",*/
-			/*CONSOLE_RED, */
-			/*"There was an err while reading arguments:\nCheck that 'input.txt' at least is made like this:\n===============================\n<title> = <download/link/url>", */
-			/*CONSOLE_RESET);*/
-			
-			/*goto FINISH;*/
-		/*}*/
-		
-		while(appletMainLoop()) {
-			hidScanInput();
-			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-			
-			printf("\x1b[1;1H%d links counter", n);
-			printf("\x1b[5;1HStart = %s%s%s\n\nURL = %s%s%s", CONSOLE_BLUE, i[n], CONSOLE_RESET, CONSOLE_GREEN, f[n], CONSOLE_RESET);
-			printf("\x1b[10;1HPress D-PAD [->] to look forward\n");
-			printf("Press D-PAD [<-] to look backward\n");
-			printf("\nPress [A] to start download\n");
-			printf("Press [B] to go back\n");
-			
-			if (kDown & KEY_DLEFT) {
-				consoleClear();
-				n--;
-				if (n < 0) n = counter;
+		goto SKIP;
+	} else {
+		consoleClear();
+		consoleUpdate(NULL);
+
+		// just using n to count on how many links have founded; used for debugging
+		int n = 0;
+		// Used to know how links in file
+		int nb_links = 0;
+		// array f will contain the argument <download-link>
+		char	**links = NULL;
+		// array i will contain the argument <desc-of-download>
+		char	**desc = NULL;
+
+		if (getLinksInFile("input.txt", &links, &desc) == true) {
+			for (int i = 0; desc[i]; i++) {
+				++nb_links;
 			}
-			
-			if (kDown & KEY_DRIGHT) {
-				consoleClear();
-				n++;
-				if (n > counter) n = 0;
+
+			while(appletMainLoop()) {
+				hidScanInput();
+				u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+				printf("nb_links = %d\n", nb_links);
+	
+				printf("\x1b[1;1H%d links counter", n);
+				printf("\x1b[5;1HStart = %s%s%s\n\nURL = %s%s%s", CONSOLE_BLUE, desc[n], CONSOLE_RESET, CONSOLE_GREEN, links[n], CONSOLE_RESET);
+	
+				printf("\x1b[10;1HPress D-PAD [->] to look forward\n");
+				printf("Press D-PAD [<-] to look backward\n");
+				printf("\nPress [A] to start download\n");
+				printf("Press [B] to go back\n");
+				
+				if (kDown & KEY_DLEFT) {
+					consoleClear();
+					n--;
+					if (n < 0) n = nb_links -1;
+				}
+				
+				if (kDown & KEY_DRIGHT) {
+					consoleClear();
+					n++;
+					if (n >= nb_links) n = 0;
+				}
+				
+				if (kDown & KEY_B) {
+					freeArray(links);
+					freeArray(desc);
+					return false;
+				}
+				
+				if (kDown & KEY_A) {
+					sprintf(tmp1, "%s", links[n]);
+					break;
+				}
+				freeArray(links);
+				freeArray(desc);
+				
+				consoleUpdate(NULL);
 			}
-			
-			if (kDown & KEY_B) {
-				return false;
-			}
-			
-			if (kDown & KEY_A) {
-				sprintf(tmp1, "%s", f[n]);
-				break; 
-			}
-			
+				
+			printf("\n# Done!");
 			consoleUpdate(NULL);
-		}
 			
-		printf("\n# Done!");
-		consoleUpdate(NULL);
-		
-		// passing url to char* for libcurl; Now we need tmp1 to parse the code to get the filename
-		url = strdup(tmp1);
-		fclose(dest);
-		
-	} else { // error opening dest
-		printf("\n# %s%s%s", CONSOLE_RED, "There is no input.txt!", CONSOLE_RESET);
-		consoleUpdate(NULL);
-		goto FINISH;
+			// passing url to char* for libcurl; Now we need tmp1 to parse the code to get the filename
+			url = strdup(tmp1);
+			
+		} else { // error opening dest
+			printf("\n# %s%s%s", CONSOLE_RED, "There is no input.txt!", CONSOLE_RESET);
+			consoleUpdate(NULL);
+			goto FINISH;
+		}
+	
 	}
+	
 	
 	SKIP:
 	
