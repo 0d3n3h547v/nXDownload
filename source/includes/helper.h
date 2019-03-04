@@ -24,6 +24,7 @@ bool	isFileExist(const char *file);
 void	userAppInit(void);
 void	getHeapMemory(s_heapMemory heapMemory);
 size_t	countLinesInFile(int fd);
-char	**getLinksInFile(const char *filename);
+bool	getLinksInFile(const char *filename, char ***links, char ***desc);
+void	freeArray(char **array);
 
 #endif

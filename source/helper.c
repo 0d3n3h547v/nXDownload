@@ -1,50 +1,56 @@
 #include "includes/helper.h"
 
+void	freeArray(char **array)
+{
+	for (int i = 0; array[i]; i++) {
+		free(array[i]);
+		array[i] = NULL;
+	}
+	free(array);
+	array = NULL;
+}
+
 // This function open a file and return the content in a char *
-char	**getLinksInFile(const char *filename)
+bool	getLinksInFile(const char *filename, char ***links, char ***desc)
 {
 	int		fd = 0;
-	char	**array = NULL;
-	char	*line = NULL;
 	int		nb_lines = 0;
-	char	desc[512] = {0}, link[512] = {0};
+	char	*line = NULL;
+	char	tmp_desc[512] = {0}, tmp_link[512] = {0};
 
 	fd = open(filename, O_RDONLY);
 	if (fd == -1) {
-		printf("error\n");
-		return (NULL);
+		return (false);
 	}
 
 	// if error while reading file return NULL
 	nb_lines = countLinesInFile(fd);
 	if (nb_lines == -1) {
-		printf("error\n");
-		return NULL;
+		return (false);
 	}
 
 	// Alloc array whith number of line in file
-	// x2 for description and link
-	// [description]
-	// [link]
-	// +1 for NULL
-	array = (char **)calloc((nb_lines * 2) + 1, sizeof(char *));
-	if (array == NULL)
-	{
-		printf("error\n");
-		return (NULL);
+	char	**tab = (char **)calloc(nb_lines + 1, sizeof(char *));
+	char	**tab2 = (char **)calloc(nb_lines + 1, sizeof(char *));
+	if (tab == NULL || tab2 == NULL) {
+		printf("calloc error\n");
+		return (false);
 	}
 
 	// store description and link
-	for (int i = 0, j = 1; get_next_line(fd, &line); i+=2, j+=2) {
-		sscanf(line, "%s = %s", desc, link);
-		array[i] = strdup(desc);
-		array[j] = strdup(link);
+	for (int i = 0; get_next_line(fd, &line) > 0; i++) {
+		sscanf(line, "%s = %s\n", tmp_desc, tmp_link);
+		tab[i] = strdup(tmp_link);
+		tab2[i] = strdup(tmp_desc);
 		free(line);
 	}
 
-	line = NULL;
+	close(fd);
 
-	return (array);
+	*links = tab;
+	*desc = tab2;
+
+	return (true);
 }
 
 size_t	countLinesInFile(int fd)
