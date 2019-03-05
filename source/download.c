@@ -250,7 +250,7 @@ static char	*selectLink()
 	char	*url = NULL;	// Used to save the url for download
 
 	// get all links and desc from input.txt
-	if ((nb_links = getLinksInFile("input.txt", &links, &desc)) == true) {
+	if ((nb_links = getLinksInFile("input.txt", &links, &desc)) != -1) {
 		while(appletMainLoop()) {
 			hidScanInput();
 			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
@@ -322,21 +322,15 @@ char	*getLink(char *filename)
 
 bool FILE_TRANSFER_HTTP(char *url, int a) {
 	consoleClear();
-	FILE *dest;
-	char hn[50];
-	
-	// using tmp1 for passing url to another char array
-	char tmp1[256];
-	
-	// buf here has the main function to extract the filename and use it as argument for fopen()
-	char buf[256];
+
+	FILE *dest;		// using tmp1 for passing url to another char array
+	char tmp1[256];	// buf here has the main function to extract the filename and use it as argument for fopen()
+	char *buf = NULL;
 
 	// useful to pass data (url) between functions; but you need to write the tmpfile.txt with inside the url, before executing this function
 	if (a == WITH_TMP_FILE) {
 		url = getLink("tmpfile.txt");
-
 		printf("\n# %s%s%s", CONSOLE_YELLOW, "Founded argument/link to use", CONSOLE_RESET);
-
 		if (url == NULL) {
 			printf("\n# %s%s%s", CONSOLE_RED, "Error passing argument", CONSOLE_RESET);
 			goto FINISH;
@@ -344,7 +338,6 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 	} else {
 		consoleClear();
 		consoleUpdate(NULL);
-
 		url = selectLink();
 		if (url == NULL) { goto FINISH; }
 		else if (url == (void *) -1) { return (false); }
@@ -352,60 +345,44 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 
 	strcpy(tmp1, url);
 
-	if (a == 0 || a == 1 || a == 2) // this parses the url to mantain the last token, which (usually) contains the filename
-	{
-		
-		char *token;
-		token = strtok(tmp1, "/");
-		strcpy(hn, token);
+	buf = strrchr(url, '/')+1; // return ptr to possible filename
+
+	void *haddr;
+	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) goto FINISH;
+
+	if (strchr(buf, '.') == NULL) {
+		printf("\n\n# %s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?\n", CONSOLE_RESET);
+		printf("\n  Press [A] to continue");
+		printf("\n  Press [B] to skip\n");
 	
-		while(token != NULL) {						// getting filename from link
-			token = strtok(NULL, "/");				// get next token
-			if (token != NULL) strcpy(buf, token);	// copy token to buf to save possible filename from url
-		}
-		
-		int n;
-		for (n = 0; buf[n] != '\0'; n++)  {
-			if (buf[n] == '.') break;
-		}
-		
-		void *haddr;
-		if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) goto FINISH;
-		
-		if (buf[n] == '\0') {
-			printf("\n\n# %s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?\n", CONSOLE_RESET);
-			printf("\n  Press [A] to continue");
-			printf("\n  Press [B] to skip\n");
-		
-			Result rc;
+		Result rc;
+
+		SwkbdConfig skp;
+		rc = swkbdCreate(&skp, 0);
+
+		while(appletMainLoop()) {
+			hidScanInput();
+			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
 	
-			SwkbdConfig skp;
-			rc = swkbdCreate(&skp, 0);
-	
-			while(appletMainLoop()) {
-				hidScanInput();
-				u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-		
-				if (kDown & KEY_A) {
-					rc = swkbdCreate(&skp, 0);
-				
-					if (R_SUCCEEDED(rc)) {
-				
-						char tmp[21] = {0};
-						swkbdConfigMakePresetDefault(&skp);
-						swkbdConfigSetGuideText(&skp, "Remember to add `.` like `[example].nsp`");
-	
-						rc = swkbdShow(&skp, tmp, sizeof(tmp));
-						strcat(buf, tmp);
-						swkbdClose(&skp);
-						break;
-					}
+			if (kDown & KEY_A) {
+				rc = swkbdCreate(&skp, 0);
+			
+				if (R_SUCCEEDED(rc)) {
+			
+					char tmp[21] = {0};
+					swkbdConfigMakePresetDefault(&skp);
+					swkbdConfigSetGuideText(&skp, "Remember to add `.` like `[example].nsp`");
+
+					rc = swkbdShow(&skp, tmp, sizeof(tmp));
+					strcat(buf, tmp);
+					swkbdClose(&skp);
+					break;
 				}
-		
-				if (kDown & KEY_B) break;
-		
-				consoleUpdate(NULL);
 			}
+	
+			if (kDown & KEY_B) break;
+	
+			consoleUpdate(NULL);
 		}
 	}
 	
