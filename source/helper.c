@@ -10,8 +10,9 @@ void	freeArray(char **array)
 	array = NULL;
 }
 
-// This function open a file and return the content in a char *
-bool	getLinksInFile(const char *filename, char ***links, char ***desc)
+// This function open filename and fill links, desc and return number of
+// line in the file
+int	getLinksInFile(const char *filename, char ***links, char ***desc)
 {
 	int		fd = 0;
 	int		nb_lines = 0;
@@ -20,13 +21,13 @@ bool	getLinksInFile(const char *filename, char ***links, char ***desc)
 
 	fd = open(filename, O_RDONLY);
 	if (fd == -1) {
-		return (false);
+		return (-1);
 	}
 
 	// if error while reading file return NULL
 	nb_lines = countLinesInFile(fd);
 	if (nb_lines == -1) {
-		return (false);
+		return (-1);
 	}
 
 	// Alloc array whith number of line in file
@@ -34,7 +35,7 @@ bool	getLinksInFile(const char *filename, char ***links, char ***desc)
 	char	**tab2 = (char **)calloc(nb_lines + 1, sizeof(char *));
 	if (tab == NULL || tab2 == NULL) {
 		printf("calloc error\n");
-		return (false);
+		return (-1);
 	}
 
 	// store description and link
@@ -50,9 +51,10 @@ bool	getLinksInFile(const char *filename, char ***links, char ***desc)
 	*links = tab;
 	*desc = tab2;
 
-	return (true);
+	return (nb_lines);
 }
 
+// count number of line in file
 size_t	countLinesInFile(int fd)
 {
 	char		*line = NULL;
@@ -79,7 +81,7 @@ size_t	countLinesInFile(int fd)
 		line = NULL;
 	}
 
-	// reset ptr
+	// reset offset position
 	lseek(fd, position, SEEK_SET);
 
 	return (nb_lines);

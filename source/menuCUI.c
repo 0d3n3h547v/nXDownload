@@ -4,6 +4,7 @@
 #include <stdbool.h>// bool = 1 == true; 0 == false;
 #include "includes/download.h"
 #include "includes/menuCUI.h"
+#include "includes/helper.h"
 
 void title(char *str) {
 	var.half = strlen (str) / 2;

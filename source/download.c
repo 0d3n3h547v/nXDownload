@@ -12,7 +12,7 @@
 #include "includes/menuCUI.h"
 #include "includes/helper.h"
 
-#define Megabytes_in_Bytes 1048576
+#define Megabytes_in_Bytes	1048576
 
 int dlnow_Mb = 0;
 int dltotal_Mb = 0;
@@ -241,6 +241,85 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	return (inputNewLink());
 }
 
+static char	*selectLink()
+{
+	int		n = 0;			// just using n to count on how many links have founded; used for debugging
+	int		nb_links = 0;	// Used to know how links in file
+	char	**links = NULL;	// array f will contain the argument <download-link>
+	char	**desc = NULL;	// array i will contain the argument <desc-of-download>
+	char	*url = NULL;	// Used to save the url for download
+
+	// get all links and desc from input.txt
+	if ((nb_links = getLinksInFile("input.txt", &links, &desc)) == true) {
+		while(appletMainLoop()) {
+			hidScanInput();
+			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+			printf("nb_links = %d\n", nb_links);
+
+			printf("\x1b[1;1H%d links counter", n);
+			printf("\x1b[5;1HStart = %s%s%s\n\nURL = %s%s%s", CONSOLE_BLUE, desc[n], CONSOLE_RESET, CONSOLE_GREEN, links[n], CONSOLE_RESET);
+
+			printf("\x1b[10;1HPress D-PAD [->] to look forward\n");
+			printf("Press D-PAD [<-] to look backward\n");
+			printf("\nPress [A] to start download\n");
+			printf("Press [B] to go back\n");
+			
+			if (kDown & KEY_DLEFT) {
+				consoleClear();
+				n--;
+				if (n < 0) n = nb_links -1; // back to the last entry
+			}
+			
+			if (kDown & KEY_DRIGHT) {
+				consoleClear();
+				n++;
+				if (n >= nb_links) n = 0; // go to the first entry
+			}
+			
+			if (kDown & KEY_B) {
+				freeArray(links);
+				freeArray(desc);
+				return ((void *)-1);
+			}
+			
+			if (kDown & KEY_A) {
+				url = strdup(links[n]);
+				break;
+			}
+			consoleUpdate(NULL);
+		}
+
+		freeArray(links);
+		freeArray(desc);
+
+		printf("\n# Done!");
+		consoleUpdate(NULL);
+	} else { // error opening dest
+		printf("\n# %s%s%s", CONSOLE_RED, "There is no input.txt!", CONSOLE_RESET);
+		consoleUpdate(NULL);
+	}
+
+	return (url);
+}
+
+char	*getLink(char *filename)
+{
+	char	*link = NULL;
+	int		fd = 0;
+
+	fd = open(filename, O_RDONLY);
+	if (fd == -1) {
+		return (NULL);
+	}
+
+	get_next_line(fd, &link);
+
+	close(fd);
+
+	return (link);
+}
+
 bool FILE_TRANSFER_HTTP(char *url, int a) {
 	consoleClear();
 	FILE *dest;
@@ -251,101 +330,28 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 	
 	// buf here has the main function to extract the filename and use it as argument for fopen()
 	char buf[256];
-	
-	// TODO : Write funtion to parse tmpfile.txt
-	if (a == WITH_TMP_FILE) { // useful to pass data (url) between functions; but you need to write the tmpfile.txt with inside the url, before executing this function
-		// needs to be cleaned up here after testing
-		dest = fopen("tmpfile.txt", "r");
-		while(!feof(dest)) fgets(tmp1, sizeof(tmp1), dest);
-		// TODO : Don't need to use strdup, can use ptr instead
-		url = strdup(tmp1);
+
+	// useful to pass data (url) between functions; but you need to write the tmpfile.txt with inside the url, before executing this function
+	if (a == WITH_TMP_FILE) {
+		url = getLink("tmpfile.txt");
+
 		printf("\n# %s%s%s", CONSOLE_YELLOW, "Founded argument/link to use", CONSOLE_RESET);
-		fclose(dest);
-		
+
 		if (url == NULL) {
 			printf("\n# %s%s%s", CONSOLE_RED, "Error passing argument", CONSOLE_RESET);
 			goto FINISH;
 		}
-		
-		// if int a equivale with 2, and everything was okay, the code below is skipped
-		goto SKIP;
 	} else {
 		consoleClear();
 		consoleUpdate(NULL);
 
-		// just using n to count on how many links have founded; used for debugging
-		int n = 0;
-		// Used to know how links in file
-		int nb_links = 0;
-		// array f will contain the argument <download-link>
-		char	**links = NULL;
-		// array i will contain the argument <desc-of-download>
-		char	**desc = NULL;
-
-		if (getLinksInFile("input.txt", &links, &desc) == true) {
-			for (int i = 0; desc[i]; i++) {
-				++nb_links;
-			}
-
-			while(appletMainLoop()) {
-				hidScanInput();
-				u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-
-				printf("nb_links = %d\n", nb_links);
-	
-				printf("\x1b[1;1H%d links counter", n);
-				printf("\x1b[5;1HStart = %s%s%s\n\nURL = %s%s%s", CONSOLE_BLUE, desc[n], CONSOLE_RESET, CONSOLE_GREEN, links[n], CONSOLE_RESET);
-	
-				printf("\x1b[10;1HPress D-PAD [->] to look forward\n");
-				printf("Press D-PAD [<-] to look backward\n");
-				printf("\nPress [A] to start download\n");
-				printf("Press [B] to go back\n");
-				
-				if (kDown & KEY_DLEFT) {
-					consoleClear();
-					n--;
-					if (n < 0) n = nb_links -1;
-				}
-				
-				if (kDown & KEY_DRIGHT) {
-					consoleClear();
-					n++;
-					if (n >= nb_links) n = 0;
-				}
-				
-				if (kDown & KEY_B) {
-					freeArray(links);
-					freeArray(desc);
-					return false;
-				}
-				
-				if (kDown & KEY_A) {
-					sprintf(tmp1, "%s", links[n]);
-					break;
-				}
-				freeArray(links);
-				freeArray(desc);
-				
-				consoleUpdate(NULL);
-			}
-				
-			printf("\n# Done!");
-			consoleUpdate(NULL);
-			
-			// passing url to char* for libcurl; Now we need tmp1 to parse the code to get the filename
-			url = strdup(tmp1);
-			
-		} else { // error opening dest
-			printf("\n# %s%s%s", CONSOLE_RED, "There is no input.txt!", CONSOLE_RESET);
-			consoleUpdate(NULL);
-			goto FINISH;
-		}
-	
+		url = selectLink();
+		if (url == NULL) { goto FINISH; }
+		else if (url == (void *) -1) { return (false); }
 	}
-	
-	
-	SKIP:
-	
+
+	strcpy(tmp1, url);
+
 	if (a == 0 || a == 1 || a == 2) // this parses the url to mantain the last token, which (usually) contains the filename
 	{
 		
