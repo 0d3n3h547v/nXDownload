@@ -31,46 +31,55 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
 
-TARGET		:=	$(notdir $(CURDIR))
-BUILD		:=	build
-OUTDIR		:=  out
-SOURCES		:=	source
-DATA		:=	data
-EXEFS_SRC	:=	exefs_src
-APP_AUTHOR  :=  Dontwait00, SegFault42
-APP_TITLE   :=  nXDownload (working title)
-ICON        :=  Icon.jpg
-APP_VERSION :=  v1.0b
-#ROMFS	:=	romfs
+TARGET		:= $(notdir $(CURDIR))
+OUTDIR		:= out
+BUILD		:= build
+SOURCES		:= source
+INCLUDES    := include
+DATA		:= data
+EXEFS_SRC	:= exefs_src
+ROMFS       := romfs
+ICON        := Icon.jpg
+APP_TITLE   := nXDownload
+APP_AUTHOR  := Dontwait00, SegFault42
+APP_VERSION := 1.0
 
-#---------------------------------------------------------------------------------
-# options for code generation
-#---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
+ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE -ftls-model=local-exec
 
-CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
+CFLAGS	:=	-g -Wall -O3 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ #-DDEBUG # Uncomment -DDEBUG to use nxlinkStdio()
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcurl -lz -lnx
+########################################################################################
+# with Msys2, use this command "pacman -S <package>" to install the following packages #
+########################################################################################
 
-#---------------------------------------------------------------------------------
-# list of directories containing libraries, this must be the top level containing
-# include and lib
-#---------------------------------------------------------------------------------
+#########################
+#  packages to install: #
+#########################
+# - "switch-sdl2"		#
+# - "switch-sdl2_mixer"	#
+# - "switch-sdl2_ttf"	#
+# - "switch-sdl2_gfx"	#
+# - "switch-sdl2_image"	#
+# - "switch-glad"		#
+#########################
+
+LIBS	:= 	-lSDL2_ttf -lSDL2_image -lSDL2_mixer -lSDL2 -lSDL2_gfx \
+			-lpng -lz -ljpeg \
+			-lglad -lEGL -lglapi -ldrm_nouveau \
+			-lvorbisidec -logg -lmpg123 -lmodplug -lstdc++ \
+			-lglad -lEGL -lglapi -ldrm_nouveau \
+			-lnx -lm -lfreetype -lbz2
+			
 LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 
-
-#---------------------------------------------------------------------------------
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#---------------------------------------------------------------------------------
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
@@ -87,9 +96,6 @@ CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
-#---------------------------------------------------------------------------------
-# use CXX for linking C++ projects, CC for standard C
-#---------------------------------------------------------------------------------
 ifeq ($(strip $(CPPFILES)),)
 #---------------------------------------------------------------------------------
 	export LD	:=	$(CC)
@@ -101,10 +107,8 @@ else
 endif
 #---------------------------------------------------------------------------------
 
-export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
-export OFILES_SRC	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-export OFILES 	:=	$(OFILES_BIN) $(OFILES_SRC)
-export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
+export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -145,28 +149,21 @@ endif
 
 .PHONY: $(BUILD) clean all
 
-#---------------------------------------------------------------------------------
 all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@ $(BUILD) $(OUTDIR)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
-#---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(OUTDIR) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 
-
-#---------------------------------------------------------------------------------
 else
 .PHONY:	all
 
 DEPENDS	:=	$(OFILES:.o=.d)
 
-#---------------------------------------------------------------------------------
-# main targets
-#---------------------------------------------------------------------------------
 all	:	$(OUTPUT).pfs0 $(OUTPUT).nro
 
 $(OUTPUT).pfs0	:	$(OUTPUT).nso
@@ -181,13 +178,7 @@ endif
 
 $(OUTPUT).elf	:	$(OFILES)
 
-$(OFILES_SRC)	: $(HFILES_BIN)
-
-#---------------------------------------------------------------------------------
-# you need a rule like this for each extension you use as binary data
-#---------------------------------------------------------------------------------
-%.bin.o	%_bin.h :	%.bin
-#---------------------------------------------------------------------------------
+%.bin.o	:	%.bin
 	@echo $(notdir $<)
 	@$(bin2o)
 
