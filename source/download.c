@@ -303,7 +303,7 @@ static char	*selectLink()
 	return (url);
 }
 
-char	*getLink(char *filename)
+static char	*getLink(char *filename)
 {
 	char	*link = NULL;
 	int		fd = 0;
@@ -320,37 +320,42 @@ char	*getLink(char *filename)
 	return (link);
 }
 
-bool FILE_TRANSFER_HTTP(char *url, int a) {
-	consoleClear();
+static char	*getUrl(int a)
+{
+	char	*url = NULL;
 
-	FILE *dest;		// using tmp1 for passing url to another char array
-	char tmp1[256];	// buf here has the main function to extract the filename and use it as argument for fopen()
-	char *buf = NULL;
-
-	// useful to pass data (url) between functions; but you need to write the tmpfile.txt with inside the url, before executing this function
 	if (a == WITH_TMP_FILE) {
 		url = getLink("tmpfile.txt");
 		printf("\n# %s%s%s", CONSOLE_YELLOW, "Founded argument/link to use", CONSOLE_RESET);
 		if (url == NULL) {
 			printf("\n# %s%s%s", CONSOLE_RED, "Error passing argument", CONSOLE_RESET);
-			goto FINISH;
+			return (NULL);
 		}
 	} else {
 		consoleClear();
 		consoleUpdate(NULL);
 		url = selectLink();
-		if (url == NULL) { goto FINISH; }
-		else if (url == (void *) -1) { return (false); }
 	}
 
-	strcpy(tmp1, url);
+	return (url);
+}
 
-	buf = strrchr(url, '/')+1; // return ptr to possible filename
+bool FILE_TRANSFER_HTTP(char *url, int a) {
+	consoleClear();
+
+	FILE *dest;
+	char *filename = NULL;
+
+	url = getUrl(a);
+	if (url == NULL) { goto FINISH; }
+	else if (url == (void *) -1) { return (false); }
+
+	filename = strrchr(url, '/')+1; // return ptr to possible filename
 
 	void *haddr;
 	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) goto FINISH;
 
-	if (strchr(buf, '.') == NULL) {
+	if (strchr(filename, '.') == NULL) {
 		printf("\n\n# %s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?\n", CONSOLE_RESET);
 		printf("\n  Press [A] to continue");
 		printf("\n  Press [B] to skip\n");
@@ -374,7 +379,7 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 					swkbdConfigSetGuideText(&skp, "Remember to add `.` like `[example].nsp`");
 
 					rc = swkbdShow(&skp, tmp, sizeof(tmp));
-					strcat(buf, tmp);
+					strcat(filename, tmp);
 					swkbdClose(&skp);
 					break;
 				}
@@ -386,15 +391,15 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 		}
 	}
 	
-	dest = fopen(buf, "r");
+	dest = fopen(filename, "r");
 	
 	if (dest == NULL) {
 		
-		printf("\n# %s%s%s%s%s", CONSOLE_GREEN, "No (", buf, ") to overwrite", CONSOLE_RESET);
-		dest = fopen(buf, "wb");
+		printf("\n# %s%s%s%s%s", CONSOLE_GREEN, "No (", filename, ") to overwrite", CONSOLE_RESET);
+		dest = fopen(filename, "wb");
 	
 	} else { // the file exist
-		printf("\n# %s%s%s%s%s", CONSOLE_YELLOW, "File (", buf, ") exist already, overwrite?\n", CONSOLE_RESET);
+		printf("\n# %s%s%s%s%s", CONSOLE_YELLOW, "File (", filename, ") exist already, overwrite?\n", CONSOLE_RESET);
 		printf("\nPress [A] to continue\nPress [B] to go back"); // little warning
 		
 		while (appletMainLoop()) {
@@ -414,7 +419,7 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 		}
 		
 		fclose(dest);
-		dest = fopen(buf, "wb");
+		dest = fopen(filename, "wb");
 		
 	}
 	
@@ -423,8 +428,8 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 
 	printf("\n# %s%s%s", CONSOLE_GREEN, "Starting downloading...\n", CONSOLE_RESET);
 	
-	printf("%s, %s\n", url, buf);
-	downloadFile(url, buf);
+	printf("%s, %s\n", url, filename);
+	downloadFile(url, filename);
 
 	free(url);
 	
