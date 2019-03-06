@@ -419,6 +419,8 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 			
 			if (kDown & KEY_B) {
 				fclose(dest); // closing early
+				free(url);
+				free(filename);
 				return false;
 			}
 			
@@ -438,8 +440,9 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 	printf("%s, %s\n", url, filename);
 	downloadFile(url, filename);
 
+	free(filename);
 	free(url);
-	
+
 	FINISH:
 	printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);
 	return (functionExit());
