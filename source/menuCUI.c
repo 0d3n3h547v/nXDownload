@@ -48,7 +48,7 @@ void menu_options(void) {
 	initial.m = 5;
 	initial.exit = "Exit";
 	
-	for (initial.n=0; initial.n < COUNT_OF(tiles) ; initial.n++) {
+	for (initial.n=0; initial.n < (short int)COUNT_OF(tiles) ; initial.n++) {
 		printf("\x1b[%d;3H%s", initial.m, tiles[initial.n]);
 		initial.m++;
 	}

@@ -90,7 +90,7 @@ size_t	countLinesInFile(int fd)
 void userAppInit(void)
 {
 	void *addr = NULL;
-	if (svcSetHeapSize(&addr, 0x4000000) == -1)
+	if (svcSetHeapSize(&addr, 0x4000000) == (Result)-1)
 		fatalSimple(0);
 }
 

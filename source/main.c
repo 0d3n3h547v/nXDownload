@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #endif
 
-int main(int argc, char **argv) {
+int main(void) {
 	consoleInit(NULL);
 	curlInit();
 

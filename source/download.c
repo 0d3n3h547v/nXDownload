@@ -18,7 +18,7 @@ int dlnow_Mb = 0;
 int dltotal_Mb = 0;
 
 /* Functions */
-int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow) {
+int older_progress(void *p, double dltotal, double dlnow, __attribute__((unused)) double ultotal, __attribute__((unused)) double ulnow) {
 	return xferinfo(p, (curl_off_t)dltotal, (curl_off_t)dlnow);
 }
 
@@ -66,7 +66,7 @@ bool	downloadFile(const char *url, const char *filename)
 	return true;
 }
 
-size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb, void *userdata) {
+size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb) {
 	
     const size_t cb = size * nmemb;
     const char *hdr_str = hdr;
