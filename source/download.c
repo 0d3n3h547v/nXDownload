@@ -340,57 +340,64 @@ static char	*getUrl(int a)
 	return (url);
 }
 
+void	addExtension(char *filename)
+{
+	Result		rc;
+	SwkbdConfig	skp;
+	char		ext[21] = {0};
+
+	printf("\n\n# %s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?\n", CONSOLE_RESET);
+	printf("\n  Press [A] to continue");
+	printf("\n  Press [B] to skip\n");
+
+	rc = swkbdCreate(&skp, 0);
+
+	while(appletMainLoop()) {
+		hidScanInput();
+		u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+		if (kDown & KEY_A) {
+			rc = swkbdCreate(&skp, 0);
+
+			if (R_SUCCEEDED(rc)) {
+				swkbdConfigMakePresetDefault(&skp);
+				swkbdConfigSetGuideText(&skp, "Remember to add `.` like `[example].nsp`");
+
+				// -1 to do not erase '\0'
+				rc = swkbdShow(&skp, ext, sizeof(ext) -1);
+				filename = realloc(filename, strlen(filename) + strlen(ext) + 1);
+
+				strcat(filename, ext);
+				swkbdClose(&skp);
+				break;
+			}
+		}
+
+		if (kDown & KEY_B) return;
+
+		consoleUpdate(NULL);
+	}
+}
+
 bool FILE_TRANSFER_HTTP(char *url, int a) {
 	consoleClear();
 
-	FILE *dest;
-	char *filename = NULL;
+	FILE	*dest;
+	char	*filename = NULL;
 
+	// get url from file or keyboard
 	url = getUrl(a);
 	if (url == NULL) { goto FINISH; }
 	else if (url == (void *) -1) { return (false); }
 
-	filename = strrchr(url, '/')+1; // return ptr to possible filename
+	// get filename
+	filename = strdup(strrchr(url, '/')+1);
 
-	void *haddr;
-	if(R_FAILED(svcSetHeapSize(&haddr, 0x10000000))) goto FINISH;
-
-	if (strchr(filename, '.') == NULL) {
-		printf("\n\n# %s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?\n", CONSOLE_RESET);
-		printf("\n  Press [A] to continue");
-		printf("\n  Press [B] to skip\n");
-	
-		Result rc;
-
-		SwkbdConfig skp;
-		rc = swkbdCreate(&skp, 0);
-
-		while(appletMainLoop()) {
-			hidScanInput();
-			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-	
-			if (kDown & KEY_A) {
-				rc = swkbdCreate(&skp, 0);
-			
-				if (R_SUCCEEDED(rc)) {
-			
-					char tmp[21] = {0};
-					swkbdConfigMakePresetDefault(&skp);
-					swkbdConfigSetGuideText(&skp, "Remember to add `.` like `[example].nsp`");
-
-					rc = swkbdShow(&skp, tmp, sizeof(tmp));
-					strcat(filename, tmp);
-					swkbdClose(&skp);
-					break;
-				}
-			}
-	
-			if (kDown & KEY_B) break;
-	
-			consoleUpdate(NULL);
-		}
+	// add extension if missing
+	if (strchr(filename, '.') != NULL) {
+		addExtension(filename);
 	}
-	
+
 	dest = fopen(filename, "r");
 	
 	if (dest == NULL) {
