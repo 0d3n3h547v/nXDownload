@@ -241,7 +241,7 @@ bool FILE_TRANSFER_HTTP_TEMPORALY(void) {
 	return (inputNewLink());
 }
 
-static char	*selectLink()
+static char	*selectLink(void)
 {
 	int		n = 0;			// just using n to count on how many links have founded; used for debugging
 	int		nb_links = 0;	// Used to know how links in file
@@ -303,7 +303,7 @@ static char	*selectLink()
 	return (url);
 }
 
-static char	*getLink(char *filename)
+static char	*getLink(const char *filename)
 {
 	char	*link = NULL;
 	int		fd = 0;
@@ -340,7 +340,7 @@ static char	*getUrl(int a)
 	return (url);
 }
 
-void	addExtension(char *filename)
+static void	addExtension(char *filename)
 {
 	Result		rc;
 	SwkbdConfig	skp;
@@ -379,10 +379,33 @@ void	addExtension(char *filename)
 	}
 }
 
-bool FILE_TRANSFER_HTTP(char *url, int a) {
+static bool	warnFileExist(const char *filename)
+{
+	printf("\n# %s%s%s%s%s", CONSOLE_YELLOW, "File (", filename, ") exist already, overwrite?\n", CONSOLE_RESET);
+	printf("\nPress [A] to overwrite\nPress [B] to go back"); // little warning
+
+	while (appletMainLoop()) {
+		hidScanInput();
+		u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+		if (kDown & KEY_A) {
+			break;
+		}
+
+		if (kDown & KEY_B) {
+			return (false);
+		}
+
+		consoleUpdate(NULL);
+	}
+
+	return (true);
+}
+
+bool FILE_TRANSFER_HTTP(int a) {
 	consoleClear();
 
-	FILE	*dest;
+	char	*url = NULL;
 	char	*filename = NULL;
 
 	// get url from file or keyboard
@@ -398,52 +421,29 @@ bool FILE_TRANSFER_HTTP(char *url, int a) {
 		addExtension(filename);
 	}
 
-	dest = fopen(filename, "r");
-	
-	if (dest == NULL) {
-		
+	// Check if file exist before download
+	if (isFileExist(filename) == false) {
 		printf("\n# %s%s%s%s%s", CONSOLE_GREEN, "No (", filename, ") to overwrite", CONSOLE_RESET);
-		dest = fopen(filename, "wb");
-	
 	} else { // the file exist
-		printf("\n# %s%s%s%s%s", CONSOLE_YELLOW, "File (", filename, ") exist already, overwrite?\n", CONSOLE_RESET);
-		printf("\nPress [A] to continue\nPress [B] to go back"); // little warning
-		
-		while (appletMainLoop()) {
-			hidScanInput();
-			u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-			
-			if (kDown & KEY_A) {
-				break;
-			}
-			
-			if (kDown & KEY_B) {
-				fclose(dest); // closing early
-				free(url);
-				free(filename);
-				return false;
-			}
-			
-			consoleUpdate(NULL);
+		if (warnFileExist(filename) == false) {
+			free(url);
+			free(filename);
+			return (false);
 		}
-		
-		fclose(dest);
-		dest = fopen(filename, "wb");
-		
 	}
-	
-	// Temporary fclose until refactor
-	fclose(dest);
 
 	printf("\n# %s%s%s", CONSOLE_GREEN, "Starting downloading...\n", CONSOLE_RESET);
-	
 	printf("%s, %s\n", url, filename);
+
 	downloadFile(url, filename);
 
+	// release memory
 	free(filename);
 	free(url);
 
 	FINISH:
+
 	printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);
+
 	return (functionExit());
 }

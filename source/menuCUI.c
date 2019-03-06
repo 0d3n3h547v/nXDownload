@@ -104,11 +104,11 @@ bool menu_main(void) {
 				if (nXDownloadUpdate() == true) return true;
 				consoleClear();
 			} else if (select == 6) {
-				if (FILE_TRANSFER_HTTP(NULL, WITHOUT_TMP_FILE) == true) return true;
+				if (FILE_TRANSFER_HTTP(WITHOUT_TMP_FILE) == true) return true;
 				consoleClear();
 			} else if (select == 7) {
 				if (FILE_TRANSFER_HTTP_TEMPORALY() == false)
-					if (FILE_TRANSFER_HTTP(NULL, WITH_TMP_FILE) == true) return true;
+					if (FILE_TRANSFER_HTTP(WITH_TMP_FILE) == true) return true;
 				consoleClear();
 			} else if (select == 9) return true;
 		}
