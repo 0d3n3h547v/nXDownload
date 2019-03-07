@@ -417,7 +417,7 @@ bool FILE_TRANSFER_HTTP(int a) {
 	filename = strdup(strrchr(url, '/')+1);
 
 	// add extension if missing
-	if (strchr(filename, '.') != NULL) {
+	if (strchr(filename, '.') == NULL) {
 		addExtension(filename);
 	}
 
