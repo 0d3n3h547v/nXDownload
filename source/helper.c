@@ -1,4 +1,16 @@
 #include "includes/helper.h"
+#include "includes/download.h"
+
+void	deInit(void)
+{
+	curlExit();
+	consoleExit(NULL);
+
+	#ifdef DEBUG
+		socketExit();
+		nxlinkStdio();
+	#endif
+}
 
 void	freeArray(char **array)
 {

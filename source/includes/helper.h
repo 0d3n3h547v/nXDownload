@@ -26,5 +26,6 @@ void	getHeapMemory(s_heapMemory heapMemory);
 size_t	countLinesInFile(int fd);
 int		getLinksInFile(const char *filename, char ***links, char ***desc);
 void	freeArray(char **array);
+void	deInit(void);
 
 #endif
