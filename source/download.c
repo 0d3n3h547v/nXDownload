@@ -401,12 +401,31 @@ static bool	warnFileExist(const char *filename)
 	return (true);
 }
 
+static char	*getFileName(char *url)
+{
+	char	*tmp = NULL;
+
+	tmp = strrchr(url, '/');
+
+	if (tmp == NULL) {
+		consoleClear();
+		printf("%s%s%s%s\n", CONSOLE_RED, "URL bad formatted : ", url, CONSOLE_RESET);
+		consoleUpdate(NULL);
+		sleep(2);
+		free(url);
+		url = NULL;
+
+		return (NULL);
+	}
+
+	return (strdup(tmp+1));
+}
+
 bool FILE_TRANSFER_HTTP(int a) {
 	consoleClear();
 
 	char	*url = NULL;
 	char	*filename = NULL;
-	char	*tmp = NULL;
 
 	// get url from file or keyboard
 	url = getUrl(a);
@@ -414,19 +433,10 @@ bool FILE_TRANSFER_HTTP(int a) {
 		return (false);
 	} else if (url != NULL) {
 		// get filename
-		tmp = strrchr(url, '/');
-
-		if (tmp == NULL) {
-			consoleClear();
-			printf("%s%s%s%s\n", CONSOLE_RED, "URL bad formatted : ", url, CONSOLE_RESET);
-			consoleUpdate(NULL);
-			sleep(2);
-			free(url);
-			url = NULL;
+		filename = getFileName(url);
+		if (filename == NULL) {
 			return (false);
 		}
-
-		filename = strdup(tmp+1);
 
 		// add extension if missing
 		if (strchr(filename, '.') == NULL) {
