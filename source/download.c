@@ -185,7 +185,6 @@ static bool	useOldLink(void)
 			break;
 		}
 		if (kDown & KEY_X) {
-
 			ret = false;
 			break;
 		}
@@ -324,7 +323,7 @@ static char	*getUrl(int a)
 {
 	char	*url = NULL;
 
-	if (a == WITH_TMP_FILE) {
+	if (a == TMPFILE_TXT) {
 		url = getLink("tmpfile.txt");
 		printf("\n# %s%s%s", CONSOLE_YELLOW, "Founded argument/link to use", CONSOLE_RESET);
 		if (url == NULL) {
@@ -407,41 +406,54 @@ bool FILE_TRANSFER_HTTP(int a) {
 
 	char	*url = NULL;
 	char	*filename = NULL;
+	char	*tmp = NULL;
 
 	// get url from file or keyboard
 	url = getUrl(a);
-	if (url == NULL) { goto FINISH; }
-	else if (url == (void *) -1) { return (false); }
+	if (url == (void *) -1) {
+		return (false);
+	} else if (url != NULL) {
+		// get filename
+		tmp = strrchr(url, '/');
 
-	// get filename
-	filename = strdup(strrchr(url, '/')+1);
-
-	// add extension if missing
-	if (strchr(filename, '.') == NULL) {
-		addExtension(filename);
-	}
-
-	// Check if file exist before download
-	if (isFileExist(filename) == false) {
-		printf("\n# %s%s%s%s%s", CONSOLE_GREEN, "No (", filename, ") to overwrite", CONSOLE_RESET);
-	} else { // the file exist
-		if (warnFileExist(filename) == false) {
+		if (tmp == NULL) {
+			consoleClear();
+			printf("%s%s%s%s\n", CONSOLE_RED, "URL bad formatted : ", url, CONSOLE_RESET);
+			consoleUpdate(NULL);
+			sleep(2);
 			free(url);
-			free(filename);
+			url = NULL;
 			return (false);
 		}
+
+		filename = strdup(tmp+1);
+
+		// add extension if missing
+		if (strchr(filename, '.') == NULL) {
+			addExtension(filename);
+		}
+
+		// Check if file exist before download
+		if (isFileExist(filename) == false) {
+			printf("\n# %s%s%s%s%s", CONSOLE_GREEN, "No (", filename, ") to overwrite", CONSOLE_RESET);
+		} else { // the file exist
+			if (warnFileExist(filename) == false) {
+				free(url);
+				free(filename);
+				return (false);
+			}
+			remove(filename);
+		}
+
+		printf("\n# %s%s%s", CONSOLE_GREEN, "Starting downloading...\n", CONSOLE_RESET);
+		printf("%s, %s\n", url, filename);
+
+		downloadFile(url, filename);
+
+		// release memory
+		free(filename);
+		free(url);
 	}
-
-	printf("\n# %s%s%s", CONSOLE_GREEN, "Starting downloading...\n", CONSOLE_RESET);
-	printf("%s, %s\n", url, filename);
-
-	downloadFile(url, filename);
-
-	// release memory
-	free(filename);
-	free(url);
-
-	FINISH:
 
 	printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);
 

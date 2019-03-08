@@ -40,9 +40,12 @@ int	getLinksInFile(const char *filename, char ***links, char ***desc)
 
 	// store description and link
 	for (int i = 0; get_next_line(fd, &line) > 0; i++) {
-		sscanf(line, "%s = %s\n", tmp_desc, tmp_link);
-		tab[i] = strdup(tmp_link);
-		tab2[i] = strdup(tmp_desc);
+		// ignore empty line
+		if (line[0] != '\n') {
+			sscanf(line, "%s = %s\n", tmp_desc, tmp_link);
+			tab[i] = strdup(tmp_link);
+			tab2[i] = strdup(tmp_desc);
+		}
 		free(line);
 	}
 
@@ -76,7 +79,10 @@ size_t	countLinesInFile(int fd)
 
 	// count number of '\n'
 	while (get_next_line(fd, &line) > 0) {
-		nb_lines++;
+		// ignore empty line
+		if (line[0] != '\n') {
+			nb_lines++;
+		}
 		free(line);
 		line = NULL;
 	}

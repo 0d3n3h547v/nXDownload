@@ -10,8 +10,8 @@
 
 #include "get_next_line.h"
 
-#define WITHOUT_TMP_FILE	1
-#define WITH_TMP_FILE		2
+#define INPUT_TXT	1
+#define TMPFILE_TXT	2
 
 typedef	struct	heapMemory {
 	void		*haddr;

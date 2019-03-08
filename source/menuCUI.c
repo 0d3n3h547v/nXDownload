@@ -24,7 +24,7 @@ bool functionExit(void) {
 	printf("\n\n%s%s%s", CONSOLE_GREEN, "Finish!\n", CONSOLE_RESET);
 	printf("\npress [+] to exit");
 	printf("\npress [-] to continue");
-	
+
 	while(appletMainLoop()) {
 		hidScanInput();
 		u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
@@ -33,7 +33,7 @@ bool functionExit(void) {
 		if (kDown & KEY_MINUS) return false;
 		consoleUpdate(NULL);
 	}
-	
+
 	return true;
 }
 
@@ -101,23 +101,23 @@ bool menu_main(void) {
 		
 		if (kDown & KEY_A) {
 			if (select == 5) {
-				if (nXDownloadUpdate() == true) return true;
+				if (nXDownloadUpdate() == true) { return true;}
 				consoleClear();
 			} else if (select == 6) {
-				if (FILE_TRANSFER_HTTP(WITHOUT_TMP_FILE) == true) return true;
+				if (FILE_TRANSFER_HTTP(INPUT_TXT) == true) { return true; }
 				consoleClear();
 			} else if (select == 7) {
-				if (FILE_TRANSFER_HTTP_TEMPORALY() == false)
-					if (FILE_TRANSFER_HTTP(WITH_TMP_FILE) == true) return true;
+				if (FILE_TRANSFER_HTTP_TEMPORALY() == false) {
+					if (FILE_TRANSFER_HTTP(TMPFILE_TXT) == true) { return true; }
+				}
 				consoleClear();
-			} else if (select == 9) return true;
+			} else if (select == 9) { return true; }
 		}
 
-		
-		if (kDown & KEY_PLUS) return true;
-		
+		if (kDown & KEY_PLUS) { return true; }
+
 		consoleUpdate(NULL);
 	}
-	
+
 	return true;
 }
