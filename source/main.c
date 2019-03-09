@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #endif
 
-int main(int argc, char **argv) {
+int main(void) {
 	consoleInit(NULL);
 	curlInit();
 
@@ -25,12 +25,12 @@ int main(int argc, char **argv) {
 	if (isFileExist("sdmc:/switch/nXDownload") == false)
 		if (mkdir("sdmc:/switch/nXDownload", 0755) == -1) {
 			fprintf(stderr, "%sCannot create /switch/nXDownload, exiting ...%s\n", CONSOLE_RED, CONSOLE_RESET);
-			goto exit;
+			deInit();
 		}
 
 	if (chdir("sdmc:/switch/nXDownload/") == -1) {
 		fprintf(stderr, "%sCannot enter to /switch/nXDownload, exiting ...%s\n", CONSOLE_RED, CONSOLE_RESET);
-		goto exit;
+		deInit();
 	}
 
 	// false should continue
@@ -39,15 +39,7 @@ int main(int argc, char **argv) {
 	while (true) 
 		if (menu_main() == true) break;
 
-
-exit:
-	curlExit();
-	consoleExit(NULL);
-
-	#ifdef DEBUG
-		socketExit();
-		nxlinkStdio();
-	#endif
+	deInit();
 
 	return (EXIT_SUCCESS);
 }

@@ -36,7 +36,7 @@ void curlExit(void);
 
 int nXDownloadUpdate(void);
 void FILE_TRANSFER_FTP(char *url, char path[]);
-bool FILE_TRANSFER_HTTP(char *url, int a);
+bool FILE_TRANSFER_HTTP(int a);
 bool FILE_TRANSFER_HTTP_TEMPORALY(void);
 int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow);
 int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow);

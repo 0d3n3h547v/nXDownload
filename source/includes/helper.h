@@ -5,6 +5,13 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <switch.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#include "get_next_line.h"
+
+#define INPUT_TXT	1
+#define TMPFILE_TXT	2
 
 typedef	struct	heapMemory {
 	void		*haddr;
@@ -16,5 +23,9 @@ typedef	struct	heapMemory {
 bool	isFileExist(const char *file);
 void	userAppInit(void);
 void	getHeapMemory(s_heapMemory heapMemory);
+size_t	countLinesInFile(int fd);
+int		getLinksInFile(const char *filename, char ***links, char ***desc);
+void	freeArray(char **array);
+void	deInit(void);
 
 #endif
