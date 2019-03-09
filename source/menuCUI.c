@@ -42,7 +42,8 @@ void menu_options(void) {
 	char *tiles[] = {
 		"Update latest beta nXDownload",
 		"Download from input.txt",
-		"Download temporaly URL"
+		"Download temporaly URL",
+		"Download tmp URL (with User & Password)"
 	};
 	
 	initial.m = 5;
@@ -60,9 +61,11 @@ void menu_options(void) {
 }
 
 bool menu_main(void) {
+	
 	consoleClear();
-	title("nXDownload v1.0b");
+	title("nXDownload v1.1b");
 	menu_options();
+	userAppInit();
 	
 	int select = 5;
 	short int bkp_n = initial.n + 5;
@@ -70,7 +73,7 @@ bool menu_main(void) {
 	
 	while(appletMainLoop()) {
 		
-		title("nXDownload v1.0b");
+		title("nXDownload v1.1b");
 		menu_options();
 		
 		/* Look here for colored text >> https://switchbrew.github.io/libnx/console_8h.html */
@@ -111,7 +114,16 @@ bool menu_main(void) {
 					if (FILE_TRANSFER_HTTP(TMPFILE_TXT) == true) { return true; }
 				}
 				consoleClear();
-			} else if (select == 9) { return true; }
+			} else if (select == 8) {
+				if (inputUser() != true) {
+					if (inputPassword() != true) {
+						if (FILE_TRANSFER_HTTP_TEMPORALY() == false) {
+							if (FILE_TRANSFER_HTTP(NULL, 2) == true) return true;
+						}
+					}
+				}
+				consoleClear();
+			} else if (select == 10) return true;
 		}
 
 		if (kDown & KEY_PLUS) { return true; }

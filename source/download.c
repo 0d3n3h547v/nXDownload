@@ -1,4 +1,5 @@
 /* Includes */
+#include <time.h>
 #include <stdio.h>
 #include <errno.h>
 #include <switch.h>
@@ -13,9 +14,20 @@
 #include "includes/helper.h"
 
 #define Megabytes_in_Bytes	1048576
+#define Kibibyte_in_Bytes	1024
 
 int dlnow_Mb = 0;
 int dltotal_Mb = 0;
+
+// measure download speed
+bool open_room = false;
+bool once = false;
+int dlspeed = 0;
+int dl_curr = 0;
+int	curr_sec = 0; // current second from system
+int ticket = 0; // current (second + 1) from system
+
+char global_f_tmp[512]; /* we need this global FILE variable for passing args */
 
 /* Functions */
 int older_progress(void *p, double dltotal, double dlnow, __attribute__((unused)) double ultotal, __attribute__((unused)) double ulnow) {
@@ -34,7 +46,6 @@ bool	downloadFile(const char *url, const char *filename)
 	curl = curl_easy_init();
 	
 	if (curl) {
-
 		prog.lastruntime = 0;
 		prog.curl = curl;
 
@@ -50,8 +61,11 @@ bool	downloadFile(const char *url, const char *filename)
 			curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, older_progress);
 			curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &prog);
 			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+			
+			if (strlen(global_f_tmp) != 0) curl_easy_setopt(curl, CURLOPT_USERPWD, global_f_tmp);
+			
 			res = curl_easy_perform(curl);									// perform tasks curl_easy_setopt asked before
-
+			
 			fclose(dest);
 		}
 	}
@@ -62,44 +76,58 @@ bool	downloadFile(const char *url, const char *filename)
 		printf("\n# Failed: %s%s%s\n", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
 		return false;
 	}
-
+	
 	return true;
 }
 
-size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb) {
-	
-    const size_t cb = size * nmemb;
-    const char *hdr_str = hdr;
-    const char *compareContent = "Content-disposition:";
+size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb)
+{
+	const size_t	cb = size * nmemb;
+	const char		*hdr_str = hdr;
+	const char		*compareContent = "Content-disposition:";
 
-    /* Example: 
-     * ...
-     * Content-Type: text/html
-     * Content-Disposition: filename=name1367; charset=funny; option=strange
-     */
-    if (strstr(hdr_str, compareContent)) {
-        printf ("has c-d: %s\n", hdr_str);
-    }
-	
-    return cb;
+	/* Example:
+	* ...
+	* Content-Type: text/html
+	* Content-Disposition: filename=name1367; charset=funny; option=strange
+	*/
+	if (strstr(hdr_str, compareContent)) {
+		printf ("has c-d: %s\n", hdr_str);
+	}
+
+	return cb;
 }
 
 int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
-	struct myprogress *myp = (struct myprogress *)p;
-	CURL *curl = myp->curl;
-	TIMETYPE curtime = 0;
- 
-	curl_easy_getinfo(curl, TIMEOPT, &curtime);
-	
-	if((curtime - myp->lastruntime) >= MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL) {
-		myp->lastruntime = curtime;
-		//if (print == 0) printf("TOTAL TIME: %f                                  \n", curtime);
-	}
 	
 	dlnow_Mb = dlnow / Megabytes_in_Bytes;
 	dltotal_Mb = dltotal / Megabytes_in_Bytes;
 	
-	printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes (%d Mb of %d Mb) \r", dlnow, dltotal, dlnow_Mb, dltotal_Mb);
+	// we need to create a separated room inside this "while" loop
+	// so we can process this room once every so often
+	curr_sec = time(0);
+	
+	if (open_room == false) {
+		ticket = time(0) + 1;
+		dl_curr = dlnow;
+		open_room = true; // closing room
+	}
+	
+	if (curr_sec >= ticket) {
+		dlspeed = (dlnow - dl_curr) / Kibibyte_in_Bytes;
+		open_room = false; // opening room
+	}
+	
+	if (dltotal_Mb == 1) {
+		printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes | %3d Kb/s", dlnow, dltotal, dlspeed);
+	} else if (dltotal_Mb > 1) {
+		printf("# DOWNLOAD: %d Mb of %d Mb | %3d Kb/s\r", dlnow_Mb, dltotal_Mb, dlspeed);
+	}
+	
+	if (dlnow == dltotal && dltotal > 0 && once == false) {
+		printf("\n                                                                                "); // lol, is required
+		once = true;
+	}
 	
 	consoleUpdate(NULL);
 	return 0;
@@ -163,8 +191,7 @@ static bool	useOldLink(void)
 		nbytes = fread(buffer, sizeof(char), st.st_size, fp);
 
 		if (nbytes > 0) {
-			printf("\ntmpfile.txt :\n");
-			printf("\n%s\n", buffer);
+			printf("\ntmpfile.txt : %s%s%s\n", CONSOLE_GREEN, buffer, CONSOLE_RESET);
 		}
 		fclose(fp);
 	}
@@ -465,7 +492,58 @@ bool FILE_TRANSFER_HTTP(int a) {
 		free(url);
 	}
 
-	printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);
+	/*printf ("\nRemote name: %s\n", dnld_params.dnld_remote_fname);*/
 
 	return (functionExit());
+}
+
+bool inputUser(void)
+{
+	bool err = false;
+	SwkbdConfig	skp; // Software Keyboard Pointer
+	Result		rc = swkbdCreate(&skp, 0);
+	char		tmpout[256];
+	
+	if (R_SUCCEEDED(rc)) {
+		
+		swkbdConfigMakePresetDefault(&skp);
+		swkbdConfigSetGuideText(&skp, "Insert Username");
+		rc = swkbdShow(&skp, tmpout, sizeof(tmpout));
+		
+		if (strlen(tmpout) == 0) err = true;
+		
+	} else err = true;
+	
+	if (err == false && strlen(tmpout) != 0) {
+	sprintf(global_f_tmp, "%s", tmpout);
+	} else err = true;
+	
+	return err;
+}
+
+bool inputPassword(void)
+{
+	bool	    err = false;
+	SwkbdConfig	skp; // Software Keyboard Pointer
+	Result		rc = {0};
+	char		tmpout[256] = {0};
+	rc = swkbdCreate(&skp, 0);
+	
+	if (R_SUCCEEDED(rc)) {
+		
+		swkbdConfigMakePresetDefault(&skp);
+		swkbdConfigSetGuideText(&skp, "Insert Password (if neccessary)");
+		rc = swkbdShow(&skp, tmpout, sizeof(tmpout));
+		
+		if (strlen(tmpout) != 0) strcat(global_f_tmp, ":");
+		
+	} else err = true;
+	
+	if (err == false) {
+	
+		strcat(global_f_tmp, tmpout);
+		
+	} else err = true;
+	
+	return err;
 }
