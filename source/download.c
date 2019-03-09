@@ -30,8 +30,8 @@ int ticket = 0; // current (second + 1) from system
 char global_f_tmp[512]; /* we need this global FILE variable for passing args */
 
 /* Functions */
-int older_progress(void *p, double dltotal, double dlnow, __attribute__((unused)) double ultotal, __attribute__((unused)) double ulnow) {
-	return xferinfo(p, (curl_off_t)dltotal, (curl_off_t)dlnow);
+int older_progress(__attribute__((unused)) void *p, double dltotal, double dlnow, __attribute__((unused)) double ultotal, __attribute__((unused)) double ulnow) {
+	return xferinfo((curl_off_t)dltotal, (curl_off_t)dlnow);
 }
 
 bool	downloadFile(const char *url, const char *filename)
@@ -98,8 +98,8 @@ size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb)
 	return cb;
 }
 
-int xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow) {
-	
+int xferinfo(curl_off_t dltotal, curl_off_t dlnow) {
+
 	dlnow_Mb = dlnow / Megabytes_in_Bytes;
 	dltotal_Mb = dltotal / Megabytes_in_Bytes;
 	
