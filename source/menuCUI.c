@@ -118,7 +118,7 @@ bool menu_main(void) {
 				if (inputUser() != true) {
 					if (inputPassword() != true) {
 						if (FILE_TRANSFER_HTTP_TEMPORALY() == false) {
-							if (FILE_TRANSFER_HTTP(NULL, 2) == true) return true;
+							if (FILE_TRANSFER_HTTP(TMPFILE_TXT) == true) return true;
 						}
 					}
 				}
