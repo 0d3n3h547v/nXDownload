@@ -119,7 +119,7 @@ int xferinfo(curl_off_t dltotal, curl_off_t dlnow) {
 	}
 	
 	if (dltotal_Mb == 1) {
-		printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes | %3d Kb/s", dlnow, dltotal, dlspeed);
+		printf("# DOWNLOAD: %" CURL_FORMAT_CURL_OFF_T " Bytes of %" CURL_FORMAT_CURL_OFF_T " Bytes | %3d Kb/s\r", dlnow, dltotal, dlspeed);
 	} else if (dltotal_Mb > 1) {
 		printf("# DOWNLOAD: %d Mb of %d Mb | %3d Kb/s\r", dlnow_Mb, dltotal_Mb, dlspeed);
 	}
