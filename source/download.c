@@ -499,25 +499,24 @@ bool FILE_TRANSFER_HTTP(int a) {
 
 bool inputUser(void)
 {
-	bool err = false;
+	bool		err = false;
 	SwkbdConfig	skp; // Software Keyboard Pointer
 	Result		rc = swkbdCreate(&skp, 0);
-	char		tmpout[256];
-	
+	char		tmpout[256] = {0};
+
 	if (R_SUCCEEDED(rc)) {
-		
 		swkbdConfigMakePresetDefault(&skp);
 		swkbdConfigSetGuideText(&skp, "Insert Username");
 		rc = swkbdShow(&skp, tmpout, sizeof(tmpout));
-		
+
 		if (strlen(tmpout) == 0) err = true;
-		
+
 	} else err = true;
-	
-	if (err == false && strlen(tmpout) != 0) {
-	sprintf(global_f_tmp, "%s", tmpout);
+
+	if (strlen(tmpout) != 0) {
+		sprintf(global_f_tmp, "%s", tmpout);
 	} else err = true;
-	
+
 	return err;
 }
 
