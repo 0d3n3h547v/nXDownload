@@ -497,52 +497,38 @@ bool FILE_TRANSFER_HTTP(int a) {
 	return (functionExit());
 }
 
-bool inputUser(void)
+bool	inputUserOrPassword(bool userPass)
 {
 	bool		err = false;
+	char		tmpout[256] = {0};
 	SwkbdConfig	skp; // Software Keyboard Pointer
 	Result		rc = swkbdCreate(&skp, 0);
-	char		tmpout[256] = {0};
 
 	if (R_SUCCEEDED(rc)) {
 		swkbdConfigMakePresetDefault(&skp);
-		swkbdConfigSetGuideText(&skp, "Insert Username");
+
+		if (userPass == USER)
+			{ swkbdConfigSetGuideText(&skp, "Insert Username"); }
+		else if (userPass == PASSWORD)
+			{ swkbdConfigSetGuideText(&skp, "Insert Password (if neccessary)"); }
+
 		rc = swkbdShow(&skp, tmpout, sizeof(tmpout));
 
-		if (strlen(tmpout) == 0) err = true;
+		// Username
+		if (userPass == USER && tmpout[0] == 0) {
+			err = true;
+		} else if (userPass == USER && tmpout[0] != 0){
+			sprintf(global_f_tmp, "%s", tmpout);
+		}
 
-	} else err = true;
+		// Password
+		else if (userPass == PASSWORD && tmpout[0] != 0) {
+			strcat(global_f_tmp, ":");
+			strcat(global_f_tmp, tmpout);
+		}
+	} else {
+		err = true;
+	}
 
-	if (strlen(tmpout) != 0) {
-		sprintf(global_f_tmp, "%s", tmpout);
-	} else err = true;
-
-	return err;
-}
-
-bool inputPassword(void)
-{
-	bool	    err = false;
-	SwkbdConfig	skp; // Software Keyboard Pointer
-	Result		rc = {0};
-	char		tmpout[256] = {0};
-	rc = swkbdCreate(&skp, 0);
-	
-	if (R_SUCCEEDED(rc)) {
-		
-		swkbdConfigMakePresetDefault(&skp);
-		swkbdConfigSetGuideText(&skp, "Insert Password (if neccessary)");
-		rc = swkbdShow(&skp, tmpout, sizeof(tmpout));
-		
-		if (strlen(tmpout) != 0) strcat(global_f_tmp, ":");
-		
-	} else err = true;
-	
-	if (err == false) {
-	
-		strcat(global_f_tmp, tmpout);
-		
-	} else err = true;
-	
 	return err;
 }

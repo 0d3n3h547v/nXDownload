@@ -13,6 +13,9 @@
 #define MINIMAL_PROGRESS_FUNCTIONALITY_INTERVAL     3
 #define STOP_DOWNLOAD_AFTER_THIS_MANY_BYTES         6000
 
+#define USER		0
+#define PASSWORD	1
+
 /* Structures */
 struct myprogress {
   TIMETYPE lastruntime;
@@ -42,7 +45,6 @@ int xferinfo(curl_off_t dltotal, curl_off_t dlnow);
 int older_progress(void *p, double dltotal, double dlnow, double ultotal, double ulnow);
 size_t dnld_header_parse(void *hdr, size_t size, size_t nmemb);
 /* this func's is used for auth in case ftp/http requires */
-bool inputPassword(void);
-bool inputUser(void);
+bool inputUserOrPassword(bool userPass);
 
 #endif
