@@ -22,6 +22,34 @@ void	freeArray(char **array)
 	array = NULL;
 }
 
+// This function pop a keyboard.
+// This function alloc with calloc. Don't forget to free
+// message if the message to print in background
+// size is size to alloc for the message
+char	*popKeyboard(char *message, size_t size)
+{
+	SwkbdConfig	skp; // Software Keyboard Pointer
+	Result		rc = swkbdCreate(&skp, 0);
+	char		*tmpout = NULL;
+
+	// +1 for the '\0'
+	tmpout = (char *)calloc(sizeof(char), size + 1);
+	if (tmpout == NULL)
+		return (NULL);
+
+	if (R_SUCCEEDED(rc)) {
+		swkbdConfigMakePresetDefault(&skp);
+		swkbdConfigSetGuideText(&skp, message);
+		rc = swkbdShow(&skp, tmpout, size);
+		swkbdClose(&skp);
+	} else {
+		free(tmpout);
+		tmpout = NULL;
+	}
+
+	return (tmpout);
+}
+
 // This function open filename and fill links, desc and return number of
 // line in the file
 int	getLinksInFile(const char *filename, char ***links, char ***desc)

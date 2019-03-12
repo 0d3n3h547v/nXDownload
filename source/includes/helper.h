@@ -22,6 +22,7 @@ typedef	struct	heapMemory {
 
 bool	isFileExist(const char *file);
 void	userAppInit(void);
+char	*popKeyboard(char *message, size_t size);
 void	getHeapMemory(s_heapMemory heapMemory);
 size_t	countLinesInFile(int fd);
 int		getLinksInFile(const char *filename, char ***links, char ***desc);

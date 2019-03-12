@@ -225,30 +225,27 @@ static bool	useOldLink(void)
 // this function pop the keyboard and write the content in tmpfile.txt
 static bool	inputNewLink(void)
 {
-	SwkbdConfig	skp; // Software Keyboard Pointer
-	Result		rc;
 	FILE		*fp = NULL;
-	char		tmpoutstr[256] = {0};
+	char		*tmpout = NULL;
 	bool		err = false;
 
-	rc = swkbdCreate(&skp, 0);
-	if (R_SUCCEEDED(rc)) {
-		swkbdConfigMakePresetDefault(&skp);
-		swkbdConfigSetGuideText(&skp, "insert a http:// direct download link");
+	tmpout = popKeyboard("insert a http:// direct download link", 256);
 
-		rc = swkbdShow(&skp, tmpoutstr, sizeof(tmpoutstr));
-		if (*tmpoutstr == 0) {
+	if (tmpout != NULL) {
+		if (*tmpout == 0) {
 			err = true;
-		}
-		else {
+		} else {
 			if ((fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "wb")) != NULL) {
-				fprintf(fp, "%s", tmpoutstr);
+				fprintf(fp, "%s", tmpout);
 				fclose(fp);
 			} else {
 				err = true;
 			}
-			swkbdClose(&skp);
 		}
+
+		free(tmpout);
+		tmpout = NULL;
+
 	} else {
 		err = true;
 	}
@@ -368,37 +365,26 @@ static char	*getUrl(int a)
 
 static void	addExtension(char *filename)
 {
-	Result		rc;
-	SwkbdConfig	skp;
-	char		ext[21] = {0};
+	char	*ext = NULL;
 
 	printf("\n\n# %s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?\n", CONSOLE_RESET);
 	printf("\n  Press [A] to continue");
 	printf("\n  Press [B] to skip\n");
-
-	rc = swkbdCreate(&skp, 0);
 
 	while(appletMainLoop()) {
 		hidScanInput();
 		u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
 
 		if (kDown & KEY_A) {
-			rc = swkbdCreate(&skp, 0);
-
-			if (R_SUCCEEDED(rc)) {
-				swkbdConfigMakePresetDefault(&skp);
-				swkbdConfigSetGuideText(&skp, "Remember to add `.` like `[example].nsp`");
-
-				// -1 to do not erase '\0'
-				rc = swkbdShow(&skp, ext, sizeof(ext) -1);
+			ext = popKeyboard("Remember to add `.` like `[example].nsp`", 256);
+			if (ext != NULL) {
 				filename = realloc(filename, strlen(filename) + strlen(ext) + 1);
-
 				strcat(filename, ext);
-				swkbdClose(&skp);
+				free(ext);
+				ext = NULL;
 				break;
 			}
 		}
-
 		if (kDown & KEY_B) return;
 
 		consoleUpdate(NULL);
@@ -500,32 +486,28 @@ bool FILE_TRANSFER_HTTP(int a) {
 bool	inputUserOrPassword(bool userPass)
 {
 	bool		err = false;
-	char		tmpout[256] = {0};
-	SwkbdConfig	skp; // Software Keyboard Pointer
-	Result		rc = swkbdCreate(&skp, 0);
+	char		*tmpout = NULL;
 
-	if (R_SUCCEEDED(rc)) {
-		swkbdConfigMakePresetDefault(&skp);
+	if (userPass == USER)
+		tmpout = popKeyboard("Insert Username", 256);
+	else if (userPass == PASSWORD)
+		tmpout = popKeyboard("Insert Password (if neccessary)", 256);
 
-		if (userPass == USER)
-			{ swkbdConfigSetGuideText(&skp, "Insert Username"); }
-		else if (userPass == PASSWORD)
-			{ swkbdConfigSetGuideText(&skp, "Insert Password (if neccessary)"); }
-
-		rc = swkbdShow(&skp, tmpout, sizeof(tmpout));
-
+	if (tmpout != NULL) {
 		// Username
-		if (userPass == USER && tmpout[0] == 0) {
-			err = true;
-		} else if (userPass == USER && tmpout[0] != 0){
-			sprintf(global_f_tmp, "%s", tmpout);
-		}
+		if (userPass == USER && tmpout[0] == 0)
+			{ err = true; }
+		else if (userPass == USER && tmpout[0] != 0)
+			{ sprintf(global_f_tmp, "%s", tmpout); }
 
 		// Password
 		else if (userPass == PASSWORD && tmpout[0] != 0) {
 			strcat(global_f_tmp, ":");
 			strcat(global_f_tmp, tmpout);
 		}
+
+		free(tmpout);
+		tmpout = NULL;
 	} else {
 		err = true;
 	}
