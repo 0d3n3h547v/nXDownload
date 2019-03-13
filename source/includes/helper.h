@@ -7,6 +7,7 @@
 #include <switch.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "get_next_line.h"
 

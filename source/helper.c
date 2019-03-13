@@ -50,6 +50,48 @@ char	*popKeyboard(char *message, size_t size)
 	return (tmpout);
 }
 
+static bool	checkDesc(char *line)
+{
+	while (*line) {
+		if (!isascii(*line))
+			{ return (false); }
+		++line;
+	}
+
+	return (true);
+}
+
+static bool	checkUrl(char *line)
+{
+	if (strncmp(line, "http://", 7))
+		{ return (false); }
+
+	line += 7;
+
+	return (checkDesc(line));
+}
+
+static bool	checkLine(char *tmp)
+{
+	char *ptr = strtok(tmp, " =");
+
+	for (int i = 0; ptr; i++) {
+		// if i > 1 it mean the line is bad formated (more than 2 tokens)
+		if (i > 1)
+			{ return (false); }
+
+		// Check if desc and url good formatted
+		if (i == 0 && checkDesc(ptr) == false)
+			{ return (false); }
+		else if (i == 1 && checkUrl(ptr) == false)
+			{ return (false); }
+
+		ptr = strtok(NULL, " =");
+	}
+
+	return (true);
+}
+
 // This function open filename and fill links, desc and return number of
 // line in the file
 int	getLinksInFile(const char *filename, char ***links, char ***desc)
@@ -79,19 +121,20 @@ int	getLinksInFile(const char *filename, char ***links, char ***desc)
 	}
 
 	// store description and link
-	for (int i = 0; get_next_line(fd, &line) > 0; i++) {
-		// ignore empty line
-		if (line != NULL) {
+	for (int i = 0; get_next_line(fd, &line) > 0;) {
+		if (checkLine(line) == true) {
 			sscanf(line, "%s = %s\n", tmp_desc, tmp_link);
 
 			if (tmp_link[0] != '\0' && tmp_desc[0] != '\0') {
 				tab[i] = strdup(tmp_link);
 				tab2[i] = strdup(tmp_desc);
+				i++;
 			}
 
 			memset(&tmp_desc, 0, sizeof(tmp_desc));
 			memset(&tmp_link, 0, sizeof(tmp_link));
 		}
+
 		free(line);
 		line = NULL;
 	}
@@ -124,12 +167,10 @@ size_t	countLinesInFile(int fd)
 	// save offset position
 	position = lseek(fd, 0, SEEK_CUR);
 
-	// count number of '\n'
+	// count number of valid lines
 	while (get_next_line(fd, &line) > 0) {
-		// ignore empty line
-		if (line != NULL) {
-			nb_lines++;
-		}
+		if (checkLine(line) == true)
+			{ nb_lines++; }
 		free(line);
 		line = NULL;
 	}
