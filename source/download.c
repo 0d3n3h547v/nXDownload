@@ -278,8 +278,6 @@ static char	*selectLink(void)
 			hidScanInput();
 			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
 
-			printf("nb_links = %d\n", nb_links);
-
 			printf("\x1b[1;1H%d links counter", n);
 			printf("\x1b[5;1HStart = %s%s%s\n\nURL = %s%s%s", CONSOLE_BLUE, desc[n], CONSOLE_RESET, CONSOLE_GREEN, links[n], CONSOLE_RESET);
 

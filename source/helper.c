@@ -71,20 +71,25 @@ static bool	checkUrl(char *line)
 	return (checkDesc(line));
 }
 
-static bool	checkLine(char *tmp)
+static bool	checkLine(const char *line)
 {
-	char *ptr = strtok(tmp, " =");
+	char	*tmp = strdup(line);
+	char	*ptr = strtok(tmp, " =");
+
+	// strlen for exclude line with only '\n'
+	if (ptr == NULL || strlen(line) == 1)
+		{ free(tmp); return (false); }
 
 	for (int i = 0; ptr; i++) {
-		// if i > 1 it mean the line is bad formated (more than 2 tokens)
-		if (i > 1)
-			{ return (false); }
+		// if i >= 2 it mean we have more than desc and url
+		if (i == 2)
+			{  free(tmp); return (false); }
 
 		// Check if desc and url good formatted
 		if (i == 0 && checkDesc(ptr) == false)
-			{ return (false); }
+			{  free(tmp); return (false); }
 		else if (i == 1 && checkUrl(ptr) == false)
-			{ return (false); }
+			{  free(tmp); return (false); }
 
 		ptr = strtok(NULL, " =");
 	}
