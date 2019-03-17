@@ -22,6 +22,81 @@ void	freeArray(char **array)
 	array = NULL;
 }
 
+// This function pop a keyboard.
+// This function alloc with calloc. Don't forget to free
+// message if the message to print in background
+// size is size to alloc for the message
+char	*popKeyboard(char *message, size_t size)
+{
+	SwkbdConfig	skp; // Software Keyboard Pointer
+	Result		rc = swkbdCreate(&skp, 0);
+	char		*tmpout = NULL;
+
+	// +1 for the '\0'
+	tmpout = (char *)calloc(sizeof(char), size + 1);
+	if (tmpout == NULL)
+		return (NULL);
+
+	if (R_SUCCEEDED(rc)) {
+		swkbdConfigMakePresetDefault(&skp);
+		swkbdConfigSetGuideText(&skp, message);
+		rc = swkbdShow(&skp, tmpout, size);
+		swkbdClose(&skp);
+	} else {
+		free(tmpout);
+		tmpout = NULL;
+	}
+
+	return (tmpout);
+}
+
+static bool	checkDesc(char *line)
+{
+	while (*line) {
+		if (!isascii(*line))
+			{ return (false); }
+		++line;
+	}
+
+	return (true);
+}
+
+static bool	checkUrl(char *line)
+{
+	if (strncmp(line, "http://", 7))
+		{ return (false); }
+
+	line += 7;
+
+	return (checkDesc(line));
+}
+
+static bool	checkLine(const char *line)
+{
+	char	*tmp = strdup(line);
+	char	*ptr = strtok(tmp, " =");
+
+	// strlen for exclude line with only '\n'
+	if (ptr == NULL || strlen(line) == 1)
+		{ free(tmp); return (false); }
+
+	for (int i = 0; ptr; i++) {
+		// if i >= 2 it mean we have more than desc and url
+		if (i == 2)
+			{  free(tmp); return (false); }
+
+		// Check if desc and url good formatted
+		if (i == 0 && checkDesc(ptr) == false)
+			{  free(tmp); return (false); }
+		else if (i == 1 && checkUrl(ptr) == false)
+			{  free(tmp); return (false); }
+
+		ptr = strtok(NULL, " =");
+	}
+
+	return (true);
+}
+
 // This function open filename and fill links, desc and return number of
 // line in the file
 int	getLinksInFile(const char *filename, char ***links, char ***desc)
@@ -51,19 +126,20 @@ int	getLinksInFile(const char *filename, char ***links, char ***desc)
 	}
 
 	// store description and link
-	for (int i = 0; get_next_line(fd, &line) > 0; i++) {
-		// ignore empty line
-		if (line != NULL) {
+	for (int i = 0; get_next_line(fd, &line) > 0;) {
+		if (checkLine(line) == true) {
 			sscanf(line, "%s = %s\n", tmp_desc, tmp_link);
 
 			if (tmp_link[0] != '\0' && tmp_desc[0] != '\0') {
 				tab[i] = strdup(tmp_link);
 				tab2[i] = strdup(tmp_desc);
+				i++;
 			}
 
 			memset(&tmp_desc, 0, sizeof(tmp_desc));
 			memset(&tmp_link, 0, sizeof(tmp_link));
 		}
+
 		free(line);
 		line = NULL;
 	}
@@ -96,12 +172,10 @@ size_t	countLinesInFile(int fd)
 	// save offset position
 	position = lseek(fd, 0, SEEK_CUR);
 
-	// count number of '\n'
+	// count number of valid lines
 	while (get_next_line(fd, &line) > 0) {
-		// ignore empty line
-		if (line != NULL) {
-			nb_lines++;
-		}
+		if (checkLine(line) == true)
+			{ nb_lines++; }
 		free(line);
 		line = NULL;
 	}

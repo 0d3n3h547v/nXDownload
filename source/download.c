@@ -225,30 +225,27 @@ static bool	useOldLink(void)
 // this function pop the keyboard and write the content in tmpfile.txt
 static bool	inputNewLink(void)
 {
-	SwkbdConfig	skp; // Software Keyboard Pointer
-	Result		rc;
 	FILE		*fp = NULL;
-	char		tmpoutstr[256] = {0};
+	char		*tmpout = NULL;
 	bool		err = false;
 
-	rc = swkbdCreate(&skp, 0);
-	if (R_SUCCEEDED(rc)) {
-		swkbdConfigMakePresetDefault(&skp);
-		swkbdConfigSetGuideText(&skp, "insert a http:// direct download link");
+	tmpout = popKeyboard("insert a http:// direct download link", 256);
 
-		rc = swkbdShow(&skp, tmpoutstr, sizeof(tmpoutstr));
-		if (*tmpoutstr == 0) {
+	if (tmpout != NULL) {
+		if (*tmpout == 0) {
 			err = true;
-		}
-		else {
+		} else {
 			if ((fp = fopen("sdmc:/switch/nXDownload/tmpfile.txt", "wb")) != NULL) {
-				fprintf(fp, "%s", tmpoutstr);
+				fprintf(fp, "%s", tmpout);
 				fclose(fp);
 			} else {
 				err = true;
 			}
-			swkbdClose(&skp);
 		}
+
+		free(tmpout);
+		tmpout = NULL;
+
 	} else {
 		err = true;
 	}
@@ -280,8 +277,6 @@ static char	*selectLink(void)
 		while(appletMainLoop()) {
 			hidScanInput();
 			u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-
-			printf("nb_links = %d\n", nb_links);
 
 			printf("\x1b[1;1H%d links counter", n);
 			printf("\x1b[5;1HStart = %s%s%s\n\nURL = %s%s%s", CONSOLE_BLUE, desc[n], CONSOLE_RESET, CONSOLE_GREEN, links[n], CONSOLE_RESET);
@@ -368,37 +363,26 @@ static char	*getUrl(int a)
 
 static void	addExtension(char *filename)
 {
-	Result		rc;
-	SwkbdConfig	skp;
-	char		ext[21] = {0};
+	char	*ext = NULL;
 
 	printf("\n\n# %s%s%s", CONSOLE_YELLOW, "No extension founded for your filename from your link. Want to add it now?\n", CONSOLE_RESET);
 	printf("\n  Press [A] to continue");
 	printf("\n  Press [B] to skip\n");
-
-	rc = swkbdCreate(&skp, 0);
 
 	while(appletMainLoop()) {
 		hidScanInput();
 		u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
 
 		if (kDown & KEY_A) {
-			rc = swkbdCreate(&skp, 0);
-
-			if (R_SUCCEEDED(rc)) {
-				swkbdConfigMakePresetDefault(&skp);
-				swkbdConfigSetGuideText(&skp, "Remember to add `.` like `[example].nsp`");
-
-				// -1 to do not erase '\0'
-				rc = swkbdShow(&skp, ext, sizeof(ext) -1);
+			ext = popKeyboard("Remember to add `.` like `[example].nsp`", 256);
+			if (ext != NULL) {
 				filename = realloc(filename, strlen(filename) + strlen(ext) + 1);
-
 				strcat(filename, ext);
-				swkbdClose(&skp);
+				free(ext);
+				ext = NULL;
 				break;
 			}
 		}
-
 		if (kDown & KEY_B) return;
 
 		consoleUpdate(NULL);
@@ -497,52 +481,34 @@ bool FILE_TRANSFER_HTTP(int a) {
 	return (functionExit());
 }
 
-bool inputUser(void)
+bool	inputUserOrPassword(bool userPass)
 {
 	bool		err = false;
-	SwkbdConfig	skp; // Software Keyboard Pointer
-	Result		rc = swkbdCreate(&skp, 0);
-	char		tmpout[256] = {0};
+	char		*tmpout = NULL;
 
-	if (R_SUCCEEDED(rc)) {
-		swkbdConfigMakePresetDefault(&skp);
-		swkbdConfigSetGuideText(&skp, "Insert Username");
-		rc = swkbdShow(&skp, tmpout, sizeof(tmpout));
+	if (userPass == USER)
+		tmpout = popKeyboard("Insert Username", 256);
+	else if (userPass == PASSWORD)
+		tmpout = popKeyboard("Insert Password (if neccessary)", 256);
 
-		if (strlen(tmpout) == 0) err = true;
+	if (tmpout != NULL) {
+		// Username
+		if (userPass == USER && tmpout[0] == 0)
+			{ err = true; }
+		else if (userPass == USER && tmpout[0] != 0)
+			{ sprintf(global_f_tmp, "%s", tmpout); }
 
-	} else err = true;
+		// Password
+		else if (userPass == PASSWORD && tmpout[0] != 0) {
+			strcat(global_f_tmp, ":");
+			strcat(global_f_tmp, tmpout);
+		}
 
-	if (strlen(tmpout) != 0) {
-		sprintf(global_f_tmp, "%s", tmpout);
-	} else err = true;
+		free(tmpout);
+		tmpout = NULL;
+	} else {
+		err = true;
+	}
 
-	return err;
-}
-
-bool inputPassword(void)
-{
-	bool	    err = false;
-	SwkbdConfig	skp; // Software Keyboard Pointer
-	Result		rc = {0};
-	char		tmpout[256] = {0};
-	rc = swkbdCreate(&skp, 0);
-	
-	if (R_SUCCEEDED(rc)) {
-		
-		swkbdConfigMakePresetDefault(&skp);
-		swkbdConfigSetGuideText(&skp, "Insert Password (if neccessary)");
-		rc = swkbdShow(&skp, tmpout, sizeof(tmpout));
-		
-		if (strlen(tmpout) != 0) strcat(global_f_tmp, ":");
-		
-	} else err = true;
-	
-	if (err == false) {
-	
-		strcat(global_f_tmp, tmpout);
-		
-	} else err = true;
-	
 	return err;
 }

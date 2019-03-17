@@ -115,8 +115,8 @@ bool menu_main(void) {
 				}
 				consoleClear();
 			} else if (select == 8) {
-				if (inputUser() != true) {
-					if (inputPassword() != true) {
+				if (inputUserOrPassword(USER) != true) {
+					if (inputUserOrPassword(PASSWORD) != true) {
 						if (FILE_TRANSFER_HTTP_TEMPORALY() == false) {
 							if (FILE_TRANSFER_HTTP(TMPFILE_TXT) == true) return true;
 						}
