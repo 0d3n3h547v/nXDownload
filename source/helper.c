@@ -63,10 +63,14 @@ static bool	checkDesc(char *line)
 
 static bool	checkUrl(char *line)
 {
-	if (strncmp(line, "http://", 7))
-		{ return (false); }
+	if (!strncmp(line, "http://", 7)) {
+		line += 7;
+	} else if (!strncmp(line, "https://", 8)) {
+		line += 8;
+	} else {
+		return (false);
+	}
 
-	line += 7;
 
 	return (checkDesc(line));
 }
