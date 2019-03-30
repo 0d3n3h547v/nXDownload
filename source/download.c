@@ -34,6 +34,7 @@ int older_progress(__attribute__((unused)) void *p, double dltotal, double dlnow
 	return xferinfo((curl_off_t)dltotal, (curl_off_t)dlnow);
 }
 
+
 bool	downloadFile(const char *url, const char *filename)
 {
 	FILE				*dest = NULL;
@@ -74,6 +75,7 @@ bool	downloadFile(const char *url, const char *filename)
 
 	if (res != CURLE_OK) {
 		printf("\n# Failed: %s%s%s\n", CONSOLE_RED, curl_easy_strerror(res), CONSOLE_RESET);
+		remove(filename);
 		return false;
 	}
 	
