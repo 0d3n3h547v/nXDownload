@@ -40,10 +40,10 @@ bool functionExit(void) {
 void menu_options(void) {
 	
 	char *tiles[] = {
-		"Update latest beta nXDownload",
+		"Update to latest beta nXDownload",
 		"Download from input.txt",
-		"Download temporaly URL",
-		"Download tmp URL (with User & Password)"
+		"Download from temporaly URL",
+		"Download from tmp URL (with Username & Password)"
 	};
 	
 	initial.m = 5;

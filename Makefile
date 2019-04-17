@@ -38,9 +38,9 @@ SOURCES		:=	source
 DATA		:=	data
 EXEFS_SRC	:=	exefs_src
 APP_AUTHOR  :=  Dontwait00, SegFault42
-APP_TITLE   :=  nXDownload (working title)
+APP_TITLE   :=  nXDownload
 ICON        :=  Icon.jpg
-APP_VERSION :=  v1.0b
+APP_VERSION :=  v1.1b
 #ROMFS	:=	romfs
 
 #---------------------------------------------------------------------------------
