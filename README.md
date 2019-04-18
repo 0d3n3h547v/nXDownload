@@ -23,10 +23,9 @@ This homebrew was intended to download specially NSPs & XCI without problems. Bu
 ## This tool is pretty basic:
 ### 1. Create a file .txt (from any device)
 ### 2. Add few lines with links with formatted arguments
-####     - i.e.`<title-of-game/desciption> = <download/link/url_without_HTTPS>`
+####     - i.e.`<title-of-game/desciption> = <download/link/url>`
 ####     - Files are downloaded by default to `sdmc:/switch/nXDownload/`
 ####     - Remember that this tool requires *Direct Download Links* till i find someway to parse the download link from the webpage!
-####     - File-sharing websites compatible with my tool are Mediafire, Uptobox, 1fichier, and any website that uses HTTP protocol!
 ### 3. Power on your Switch, and select what file to download!
 
 ## NOTE:
@@ -36,7 +35,6 @@ This homebrew was intended to download specially NSPs & XCI without problems. Bu
 
 - This project is based on *libcurl*.
 - This project changes the **heap size**, to get the software Keyboard feature (can have memory issues). In future, this could change.
-- It doesn't support **HTTPS** protocol (meaning that once **[mbedtls library](https://tls.mbed.org/)** is officially ported to `libnx` we then can use **SSL** encyption)
 - This project is under GPL-3 License.
 - use command line `pacman -S switch-curl` inside Msys2 to be able to compile this homebrew.
 - **I do not take any responsibility if it is used inappropriately or is damaging your console.**
