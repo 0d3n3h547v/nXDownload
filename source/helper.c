@@ -5,11 +5,6 @@ void	deInit(void)
 {
 	curlExit();
 	consoleExit(NULL);
-
-	#ifdef DEBUG
-		socketExit();
-		nxlinkStdio();
-	#endif
 }
 
 void	freeArray(char **array)

@@ -16,7 +16,6 @@ int main(void) {
 
 	// redirect stdio to nxlink
 	#ifdef DEBUG
-	socketInitializeDefault();
 	nxlinkStdio();
 	#endif
 
