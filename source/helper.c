@@ -73,24 +73,26 @@ static bool	checkUrl(char *line)
 static bool	checkLine(const char *line)
 {
 	char	*tmp = strdup(line);
-	char	*ptr = strtok(tmp, " =");
+	char	*ptr = strtok(tmp, " ");
 
 	// strlen for exclude line with only '\n'
 	if (ptr == NULL || strlen(line) == 1)
 		{ free(tmp); return (false); }
 
 	for (int i = 0; ptr; i++) {
-		// if i >= 2 it mean we have more than desc and url
-		if (i == 2)
+		// if i >= 3 it mean we have more than desc and url
+		if (i == 3)
 			{  free(tmp); return (false); }
 
-		// Check if desc and url good formatted
-		if (i == 0 && checkDesc(ptr) == false)
-			{  free(tmp); return (false); }
-		else if (i == 1 && checkUrl(ptr) == false)
-			{  free(tmp); return (false); }
+		if (strcmp(ptr, "=")) {
+			// Check if desc and url good formatted
+			if (i == 0 && checkDesc(ptr) == false)
+				{ free(tmp); return (false); }
+			else if (i == 2 && checkUrl(ptr) == false)
+				{ free(tmp); return (false); }
+		}
 
-		ptr = strtok(NULL, " =");
+		ptr = strtok(NULL, " ");
 	}
 
 	return (true);
@@ -110,9 +112,9 @@ int	getLinksInFile(const char *filename, char ***links, char ***desc)
 		return (-1);
 	}
 
-	// if error while reading file return NULL
+	// if error while reading file or empty file return -1
 	nb_lines = countLinesInFile(fd);
-	if (nb_lines == -1) {
+	if (nb_lines <= 0) {
 		return (-1);
 	}
 
